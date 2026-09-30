@@ -1,3 +1,5 @@
 streamlit
 crewai==1.15.23
 groq
+reportlab
+python-docx
