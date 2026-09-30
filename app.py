@@ -1,6 +1,22 @@
 import time
+import io
 import streamlit as st
 from groq import Groq
+
+# PDF generation
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+)
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.enums import TA_LEFT
+
+# Word / DOCX generation
+from docx import Document
+from docx.shared import Pt
+
 
 # CrewAI Flow
 from crewai.flow import Flow, start, listen
@@ -195,6 +211,204 @@ st.markdown(
 
 
 # ============================================================
+# REPORT GENERATION FUNCTIONS
+# ============================================================
+
+def create_pdf(report_text):
+    """
+    Convert the generated BusinessOps report into a PDF.
+    """
+
+    buffer = io.BytesIO()
+
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=45,
+        leftMargin=45,
+        topMargin=45,
+        bottomMargin=45,
+        title="BusinessOps AI Report",
+        author="BusinessOps AI",
+    )
+
+    styles = getSampleStyleSheet()
+
+    title_style = styles["Title"]
+    title_style.alignment = TA_LEFT
+    title_style.fontSize = 20
+    title_style.leading = 25
+
+    heading_style = styles["Heading2"]
+    heading_style.fontSize = 14
+    heading_style.leading = 18
+    heading_style.spaceBefore = 12
+    heading_style.spaceAfter = 7
+
+    body_style = styles["BodyText"]
+    body_style.fontSize = 10
+    body_style.leading = 15
+    body_style.spaceAfter = 7
+
+    story = []
+
+    story.append(
+        Paragraph(
+            "BusinessOps AI",
+            title_style,
+        )
+    )
+
+    story.append(
+        Paragraph(
+            "Business Operations Intelligence Report",
+            heading_style,
+        )
+    )
+
+    story.append(Spacer(1, 10))
+
+    # Process report line by line
+    for line in report_text.splitlines():
+
+        line = line.strip()
+
+        if not line:
+            story.append(Spacer(1, 6))
+            continue
+
+        if line.startswith("## "):
+
+            heading = line.replace("## ", "").strip()
+
+            story.append(
+                Paragraph(
+                    heading,
+                    heading_style,
+                )
+            )
+
+        elif line.startswith("# "):
+
+            heading = line.replace("# ", "").strip()
+
+            story.append(
+                Paragraph(
+                    heading,
+                    heading_style,
+                )
+            )
+
+        elif line.startswith("- "):
+
+            bullet = line[2:].strip()
+
+            story.append(
+                Paragraph(
+                    "• " + bullet,
+                    body_style,
+                )
+            )
+
+        else:
+
+            # Escape special characters for ReportLab
+            safe_line = (
+                line
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+            )
+
+            story.append(
+                Paragraph(
+                    safe_line,
+                    body_style,
+                )
+            )
+
+    document.build(story)
+
+    buffer.seek(0)
+
+    return buffer.getvalue()
+
+
+def create_docx(report_text):
+    """
+    Convert the generated BusinessOps report into a Word DOCX file.
+    """
+
+    document = Document()
+
+    # Document title
+    title = document.add_heading(
+        "BusinessOps AI",
+        level=0,
+    )
+
+    document.add_paragraph(
+        "Business Operations Intelligence Report"
+    )
+
+    document.add_paragraph("")
+
+    # Process report line by line
+    for line in report_text.splitlines():
+
+        line = line.strip()
+
+        if not line:
+            document.add_paragraph("")
+            continue
+
+        if line.startswith("## "):
+
+            heading = line.replace("## ", "").strip()
+
+            document.add_heading(
+                heading,
+                level=1,
+            )
+
+        elif line.startswith("# "):
+
+            heading = line.replace("# ", "").strip()
+
+            document.add_heading(
+                heading,
+                level=1,
+            )
+
+        elif line.startswith("- "):
+
+            bullet = line[2:].strip()
+
+            paragraph = document.add_paragraph(
+                style="List Bullet"
+            )
+
+            paragraph.add_run(bullet)
+
+        else:
+
+            paragraph = document.add_paragraph()
+
+            run = paragraph.add_run(line)
+
+            run.font.size = Pt(10.5)
+
+    # Save DOCX to memory
+    buffer = io.BytesIO()
+
+    document.save(buffer)
+
+    buffer.seek(0)
+
+    return buffer.getvalue()
+
+
+# ============================================================
 # CREWAI FLOW
 # ============================================================
 
@@ -309,6 +523,7 @@ class BusinessOpsFlow(Flow):
 
         try:
             api_key = st.secrets["GROQ_API_KEY"]
+
         except Exception:
             api_key = None
 
@@ -849,8 +1064,9 @@ if st.button(
             "### Intelligence Report"
         )
 
-        # Safe rendering of AI output
-        # Prevents AI-generated HTML from breaking the UI.
+        # ====================================================
+        # REPORT DISPLAY
+        # ====================================================
 
         st.markdown(
             f"""
@@ -868,17 +1084,81 @@ if st.button(
             unsafe_allow_html=True,
         )
 
-        st.download_button(
-            "📄 Download Report",
 
-            data=str(result),
+        # ====================================================
+        # REPORT DOWNLOADS
+        # ====================================================
 
-            file_name="businessops_report.txt",
+        st.markdown("### Download Report")
 
-            mime="text/plain",
+        # Create all formats
+        pdf_file = create_pdf(result)
+        docx_file = create_docx(result)
 
-            use_container_width=True,
-        )
+        download_col1, download_col2, download_col3 = st.columns(3)
+
+
+        # ----------------------------------------------------
+        # TXT
+        # ----------------------------------------------------
+
+        with download_col1:
+
+            st.download_button(
+                "📄 Download TXT",
+
+                data=str(result),
+
+                file_name="businessops_report.txt",
+
+                mime="text/plain",
+
+                use_container_width=True,
+
+            )
+
+
+        # ----------------------------------------------------
+        # PDF
+        # ----------------------------------------------------
+
+        with download_col2:
+
+            st.download_button(
+                "📕 Download PDF",
+
+                data=pdf_file,
+
+                file_name="businessops_report.pdf",
+
+                mime="application/pdf",
+
+                use_container_width=True,
+
+            )
+
+
+        # ----------------------------------------------------
+        # WORD / DOCX
+        # ----------------------------------------------------
+
+        with download_col3:
+
+            st.download_button(
+                "📝 Download Word",
+
+                data=docx_file,
+
+                file_name="businessops_report.docx",
+
+                mime=(
+                    "application/vnd.openxmlformats-"
+                    "officedocument.wordprocessingml.document"
+                ),
+
+                use_container_width=True,
+
+            )
 
 
 # ============================================================
