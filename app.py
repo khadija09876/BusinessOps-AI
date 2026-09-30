@@ -1,164 +1,166 @@
 import time
 import streamlit as st
 from groq import Groq
-from crewai.flow.flow import Flow, start, listen
+
+# CrewAI Flow
+from crewai.flow import Flow, start, listen
+
 
 # ============================================================
 # BUSINESSOPS AI
-# Reliable FREE-tier architecture
-#
-# Python + Streamlit + CrewAI Flow + Groq SDK
-#
-# IMPORTANT:
-# - One Groq request per workflow run
-# - No LiteLLM
-# - No 6 separate LLM calls
-# - No Ollama
-# - No local model
-# - Uses openai/gpt-oss-20b
-#
-# The CrewAI Flow contains the business workflow stages.
-# The final AI generation is done by ONE Groq request.
+# Autonomous Business Process Intelligence Platform
 # ============================================================
 
 st.set_page_config(
     page_title="BusinessOps AI",
-    page_icon="⚙️",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# -----------------------------
-# UI
-# -----------------------------
-st.markdown("""
-<style>
-.stApp {
-    background:
-        radial-gradient(circle at 15% 10%, rgba(0,229,255,.08), transparent 28%),
-        radial-gradient(circle at 85% 10%, rgba(124,58,237,.10), transparent 30%),
-        #070A10;
-    color: #E8EEF7;
-}
-[data-testid="stSidebar"] {
-    background: #0B0F17;
-    border-right: 1px solid #202A3A;
-}
-.hero {
-    padding: 30px;
-    border-radius: 22px;
-    border: 1px solid #273348;
-    background: linear-gradient(135deg,#0D1521,#090D15,#111126);
-    margin-bottom: 22px;
-}
-.eyebrow {
-    color: #00E5FF;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 2px;
-}
-.hero h1 {
-    color: white;
-    font-size: 44px;
-    margin: 8px 0;
-}
-.hero p {
-    color: #9AA7BA;
-    font-size: 16px;
-}
-.card {
-    background: #0C111A;
-    border: 1px solid #222D3E;
-    border-radius: 16px;
-    padding: 18px;
-    min-height: 125px;
-}
-.card-title {
-    color: white;
-    font-size: 16px;
-    font-weight: 800;
-}
-.card-text {
-    color: #8D9AAF;
-    font-size: 13px;
-    line-height: 1.5;
-    margin-top: 8px;
-}
-.badge {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 5px 9px;
-    border-radius: 20px;
-    border: 1px solid rgba(0,229,255,.25);
-    color: #00E5FF;
-    background: rgba(0,229,255,.08);
-    font-size: 10px;
-    font-weight: 800;
-}
-.metric {
-    background: #0C111A;
-    border: 1px solid #222D3E;
-    border-radius: 14px;
-    padding: 15px;
-}
-.metric-label {
-    color: #7D8A9E;
-    font-size: 10px;
-    letter-spacing: 1px;
-}
-.metric-value {
-    color: white;
-    font-size: 22px;
-    font-weight: 800;
-    margin-top: 5px;
-}
-.section {
-    color: white;
-    font-size: 22px;
-    font-weight: 800;
-    margin: 22px 0 12px;
-}
-</style>
-""", unsafe_allow_html=True)
-
 
 # ============================================================
-# SETTINGS
+# CONFIG
 # ============================================================
 
 MODEL = "openai/gpt-oss-20b"
 
 
-def get_api_key():
-    try:
-        return st.secrets["GROQ_API_KEY"]
-    except Exception:
-        return None
+# ============================================================
+# CUSTOM CSS
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background:
+            radial-gradient(circle at 10% 10%, rgba(0, 229, 255, 0.08), transparent 30%),
+            radial-gradient(circle at 90% 20%, rgba(139, 92, 246, 0.08), transparent 30%),
+            #070b12;
+        color: #f4f7fb;
+    }
+
+    section[data-testid="stSidebar"] {
+        background: #090e17;
+        border-right: 1px solid #1c2635;
+    }
+
+    .hero {
+        padding: 35px 10px 20px 10px;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 30px;
+        border: 1px solid #1e90a8;
+        background: rgba(0, 229, 255, 0.08);
+        color: #62eaff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .hero h1 {
+        font-size: 48px;
+        margin: 15px 0 5px 0;
+        font-weight: 800;
+    }
+
+    .hero p {
+        color: #9ba8b8;
+        font-size: 17px;
+        max-width: 850px;
+    }
+
+    .stage {
+        background: linear-gradient(
+            145deg,
+            rgba(18, 27, 40, 0.95),
+            rgba(9, 15, 24, 0.95)
+        );
+        border: 1px solid #1d2a3b;
+        border-radius: 15px;
+        padding: 18px;
+        min-height: 145px;
+        margin-bottom: 12px;
+    }
+
+    .stage-number {
+        color: #61eaff;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .stage-title {
+        font-size: 17px;
+        font-weight: 750;
+        margin-top: 8px;
+    }
+
+    .stage-text {
+        color: #8f9dad;
+        font-size: 13px;
+        margin-top: 8px;
+        line-height: 1.5;
+    }
+
+    .metric-card {
+        background: #0c131e;
+        border: 1px solid #1c2939;
+        border-radius: 14px;
+        padding: 18px;
+        text-align: center;
+    }
+
+    .metric-label {
+        color: #7e8b9b;
+        font-size: 11px;
+        letter-spacing: 1px;
+    }
+
+    .metric-value {
+        color: #ffffff;
+        font-size: 26px;
+        font-weight: 800;
+        margin-top: 5px;
+    }
+
+    .report {
+        background: #0b121c;
+        border: 1px solid #203044;
+        border-radius: 16px;
+        padding: 25px;
+        line-height: 1.65;
+    }
+
+    .small-muted {
+        color: #7f8c9d;
+        font-size: 12px;
+    }
+
+    div.stButton > button {
+        border-radius: 10px;
+        font-weight: 700;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 # ============================================================
 # CREWAI FLOW
 # ============================================================
-#
-# These are workflow stages, not six separate LLM calls.
-# This is intentional: Groq's free tier has a combined TPM
-# limit, so calling the LLM six times can exceed it.
-#
-# ============================================================
 
 class BusinessOpsFlow(Flow):
 
-    def __init__(self, business_request):
-        super().__init__()
-        self.business_request = business_request
-
     @start()
     def intake(self):
-        request = self.business_request.strip()[:2200]
-
         return {
-            "request": request,
-            "stage": "Intake",
+            "request": self.state.get("request", "").strip()
         }
 
     @listen(intake)
@@ -167,210 +169,181 @@ class BusinessOpsFlow(Flow):
 
         return {
             "request": request,
-            "analysis_role": (
-                "Business Analyst: identify objective, stakeholders, "
-                "requirements and assumptions."
+            "analysis": (
+                "Identify the business objective, stakeholders, "
+                "current situation, constraints, and expected outcome."
             ),
-            "stage": "Business Analysis",
         }
 
     @listen(business_analysis)
     def operations_planning(self, data):
         return {
             **data,
-            "planning_role": (
-                "Operations Planner: create practical tasks, owners, "
-                "priorities, dependencies, risks and success metrics."
+            "operations": (
+                "Design practical operational steps, responsible roles, "
+                "dependencies, resources, and measurable outcomes."
             ),
-            "stage": "Operations Planning",
         }
 
     @listen(operations_planning)
-    def qa_definition(self, data):
+    def risk_management(self, data):
         return {
             **data,
-            "qa_role": (
-                "QA Auditor: validate completeness, ownership, "
-                "dependencies, risks and operational readiness."
+            "risk": (
+                "Identify operational, people, technology, communication, "
+                "timeline, and implementation risks."
             ),
-            "stage": "QA Audit",
         }
 
-    @listen(qa_definition)
-    def generate_final_report(self, data):
-        api_key = get_api_key()
+    @listen(risk_management)
+    def action_planning(self, data):
+        return {
+            **data,
+            "actions": (
+                "Create prioritized next actions and define what should "
+                "happen immediately, next, and later."
+            ),
+        }
+
+    @listen(action_planning)
+    def quality_control(self, data):
+        return {
+            **data,
+            "qa": (
+                "Check whether the proposed workflow is practical, "
+                "complete, consistent, and measurable."
+            ),
+        }
+
+    @listen(quality_control)
+    def final_report(self, data):
+
+        if not data["request"]:
+            return "Please enter a business request."
+
+        api_key = st.secrets.get("GROQ_API_KEY")
 
         if not api_key:
-            raise ValueError(
-                "GROQ_API_KEY is missing from Streamlit Secrets."
+            return (
+                "GROQ_API_KEY is missing. "
+                "Add it in Streamlit Cloud → Settings → Secrets."
             )
-
-        # ----------------------------------------------------
-        # ONE AND ONLY ONE Groq request
-        # ----------------------------------------------------
-        prompt = f"""
-You are BusinessOps AI.
-
-Business request:
-{data["request"]}
-
-Execute these internal roles in one response:
-
-1. BUSINESS ANALYST
-{data["analysis_role"]}
-
-2. OPERATIONS PLANNER
-{data["planning_role"]}
-
-3. QA AUDITOR
-{data["qa_role"]}
-
-Return a concise professional report using exactly:
-
-## EXECUTIVE SUMMARY
-3 short sentences.
-
-## BUSINESS ANALYSIS
-Objective:
-Stakeholders:
-Requirements:
-Assumptions:
-
-## OPERATIONS PLAN
-| # | Task | Owner | Priority | Dependency |
-|---|---|---|---|---|
-Create 5 tasks.
-
-## RISKS & MITIGATIONS
-- Risk → Mitigation
-- Risk → Mitigation
-- Risk → Mitigation
-
-## SUCCESS METRICS
-- Metric
-- Metric
-- Metric
-
-## COMMUNICATION DRAFT
-One short internal message.
-
-## NEXT ACTIONS
-1.
-2.
-3.
-
-## QA AUDIT
-Status: PASS / PASS WITH NOTES / NEEDS REVIEW
-Findings:
-- 
-- 
-Recommendation:
--
-
-Maximum 450 words.
-Do not explain your process.
-"""
 
         client = Groq(api_key=api_key)
 
-        # A small retry handles a transient 429.
-        # It does NOT make repeated calls when the first call succeeds.
-        last_error = None
+        prompt = f"""
+You are BusinessOps AI, an autonomous business process intelligence
+assistant.
 
-        for attempt in range(2):
+Analyze this business request:
 
-            try:
-                completion = client.chat.completions.create(
-                    model=MODEL,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": (
-                                "You are a concise enterprise business "
-                                "operations analyst. Return useful "
-                                "business-ready content."
-                            ),
-                        },
-                        {
-                            "role": "user",
-                            "content": prompt,
-                        },
-                    ],
-                    temperature=0.1,
-                    max_completion_tokens=450,
-                    reasoning_effort="low",
-                )
+{data["request"][:2500]}
 
-                content = completion.choices[0].message.content
+Internal workflow stages:
 
-                if content and content.strip():
-                    return content.strip()
+1. Business Analysis
+{data["analysis"]}
 
-                raise RuntimeError(
-                    "Groq returned an empty response."
-                )
+2. Operations Planning
+{data["operations"]}
 
-            except Exception as error:
-                last_error = error
-                message = str(error).lower()
+3. Risk Management
+{data["risk"]}
 
-                if (
-                    "rate_limit" not in message
-                    and "rate limit" not in message
-                    and "429" not in message
-                ):
-                    raise
+4. Action Planning
+{data["actions"]}
 
-                if attempt == 0:
-                    time.sleep(3)
+5. Quality Control
+{data["qa"]}
 
-        raise RuntimeError(
-            "Groq rate limit is still active. "
-            "Please wait 30–60 seconds before running again."
-        ) from last_error
+Generate a professional Business Operations Report.
 
+Use exactly these sections:
 
-# ============================================================
-# SAMPLE REQUESTS
-# ============================================================
+## Executive Summary
+## Business Analysis
+## Recommended Workflow
+## Risks & Mitigations
+## Priority Actions
+## KPIs / Success Metrics
+## QA Check
 
-examples = {
-    "Employee Onboarding":
-        "Our company is hiring 20 employees next month. "
-        "Create an onboarding workflow covering HR documentation, "
-        "IT accounts, laptops, security training and department orientation.",
+Requirements:
+- Be practical and specific.
+- Do not invent company-specific facts.
+- Use concise professional language.
+- Give actionable recommendations.
+- Maximum approximately 450 words.
+"""
 
-    "Software Rollout":
-        "We need to roll out a new project management platform "
-        "to 120 employees. Plan pilot testing, training, account setup, "
-        "communication and post-launch support.",
+        try:
+            response = client.chat.completions.create(
+                model=MODEL,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a professional business operations "
+                            "intelligence assistant. Produce concise, "
+                            "structured and actionable reports."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
+                temperature=0.1,
+                max_completion_tokens=600,
+                reasoning_effort="low",
+            )
 
-    "Office Relocation":
-        "Our 80-person office is moving to a new location in six weeks. "
-        "Create a plan covering facilities, IT, employees, vendors, "
-        "equipment movement, security and communication.",
+            result = response.choices[0].message.content
 
-    "Customer Support":
-        "Our customer support team has too many unresolved tickets. "
-        "Create an improvement plan covering ticket ownership, escalation, "
-        "response targets, training and quality monitoring.",
-}
+            if not result or not result.strip():
+                return "The AI returned an empty response. Please try again."
 
+            return result.strip()
 
-# ============================================================
-# HEADER
-# ============================================================
+        except Exception as e:
 
-st.markdown("""
-<div class="hero">
-    <div class="eyebrow">AI OPERATIONS CONTROL CENTER</div>
-    <h1>BusinessOps AI</h1>
-    <p>
-        Transform an unstructured business request into an
-        actionable, risk-aware and quality-checked execution plan.
-    </p>
-</div>
-""", unsafe_allow_html=True)
+            error_text = str(e).lower()
+
+            if "rate limit" in error_text or "429" in error_text:
+                time.sleep(3)
+
+                try:
+                    retry = client.chat.completions.create(
+                        model=MODEL,
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt,
+                            }
+                        ],
+                        temperature=0.1,
+                        max_completion_tokens=600,
+                        reasoning_effort="low",
+                    )
+
+                    retry_result = retry.choices[0].message.content
+
+                    if retry_result and retry_result.strip():
+                        return retry_result.strip()
+
+                    return "Groq returned an empty response after retry."
+
+                except Exception as retry_error:
+                    return (
+                        "Groq rate limit is temporarily active. "
+                        "Please wait a few seconds and run again.\n\n"
+                        f"Technical detail: {retry_error}"
+                    )
+
+            return (
+                "BusinessOps AI could not complete the analysis.\n\n"
+                f"Technical detail: {e}"
+            )
 
 
 # ============================================================
@@ -378,81 +351,138 @@ st.markdown("""
 # ============================================================
 
 with st.sidebar:
-    st.markdown("## ⚙️ Control Center")
 
-    st.markdown("### Workflow")
+    st.markdown("## ⚡ BusinessOps AI")
 
-    st.markdown("""
-    **01 — Intake**  
-    Capture business request.
-
-    **02 — Business Analysis**  
-    Identify objectives and requirements.
-
-    **03 — Operations Planning**  
-    Build tasks and dependencies.
-
-    **04 — QA Audit**  
-    Validate the final workflow.
-
-    **05 — AI Report**  
-    One Groq generation produces the final result.
-    """)
+    st.markdown(
+        """
+        <div class="small-muted">
+        Autonomous Business Process Intelligence Platform
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     st.divider()
 
-    st.markdown("### Stack")
-    st.caption("Python 3.14")
-    st.caption("Streamlit")
-    st.caption("CrewAI Flow")
-    st.caption("Groq SDK")
-    st.caption("GPT-OSS 20B")
+    st.markdown("### Technology")
+
+    st.write("🐍 Python 3.12")
+    st.write("🎨 Streamlit")
+    st.write("🤖 CrewAI Flow")
+    st.write("⚡ Groq API")
+    st.write("🧠 GPT-OSS 20B")
+    st.write("☁️ Streamlit Cloud")
 
     st.divider()
 
-    st.caption("No Ollama")
-    st.caption("No local model")
-    st.caption("No paid database")
+    st.markdown("### Architecture")
+
+    st.markdown(
+        """
+        **Single Groq generation + multi-stage CrewAI Flow**
+
+        The workflow contains multiple business intelligence
+        stages while keeping the actual LLM generation to
+        one primary request per run.
+        """
+    )
+
+    st.divider()
+
+    st.caption("Free-tier friendly architecture")
+    st.caption("No Ollama • No local model • No paid database")
 
 
 # ============================================================
-# WORKFLOW CARDS
+# HERO
 # ============================================================
 
 st.markdown(
-    '<div class="section">Workflow Pipeline</div>',
-    unsafe_allow_html=True
+    """
+    <div class="hero">
+
+        <span class="badge">AUTONOMOUS BUSINESS INTELLIGENCE</span>
+
+        <h1>BusinessOps AI</h1>
+
+        <p>
+        Transform complex business requests into structured
+        operational plans, risk controls, priority actions,
+        and measurable outcomes using an agentic AI workflow.
+        </p>
+
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
-cards = [
-    ("01", "Business Analyst", "Objective, stakeholders and requirements."),
-    ("02", "Operations Planner", "Tasks, owners, priorities and dependencies."),
-    ("03", "Risk Manager", "Risks and mitigation planning."),
-    ("04", "Communications", "Professional internal communication."),
-    ("05", "Next Actions", "Immediate executable actions."),
-    ("06", "QA Auditor", "Final completeness and readiness check."),
+
+# ============================================================
+# WORKFLOW STAGES
+# ============================================================
+
+st.markdown("### Agentic Workflow")
+
+stages = [
+    (
+        "01",
+        "Business Analyst",
+        "Understands the business problem, objective, stakeholders and constraints.",
+    ),
+    (
+        "02",
+        "Operations Planner",
+        "Converts the problem into an executable operational workflow.",
+    ),
+    (
+        "03",
+        "Risk Manager",
+        "Identifies implementation risks and practical mitigation strategies.",
+    ),
+    (
+        "04",
+        "Action Planner",
+        "Converts recommendations into prioritized next actions.",
+    ),
+    (
+        "05",
+        "KPI Designer",
+        "Defines measurable outcomes and success indicators.",
+    ),
+    (
+        "06",
+        "QA Auditor",
+        "Performs a final quality and consistency review.",
+    ),
 ]
 
 cols = st.columns(3)
 
-for i, (number, title, description) in enumerate(cards):
+for i, (number, title, description) in enumerate(stages):
+
     with cols[i % 3]:
+
         st.markdown(
             f"""
-            <div class="card">
-                <div class="card-title">
-                    {number} · {title}
+            <div class="stage">
+
+                <div class="stage-number">
+                    {number} / 06
                 </div>
-                <div class="card-text">
+
+                <div class="stage-title">
+                    {title}
+                </div>
+
+                <div class="stage-text">
                     {description}
                 </div>
-                <div class="badge">WORKFLOW STAGE</div>
+
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
-
-st.write("")
 
 
 # ============================================================
@@ -461,157 +491,158 @@ st.write("")
 
 m1, m2, m3, m4 = st.columns(4)
 
-metric_data = [
-    ("AI ENGINE", "Groq"),
-    ("MODEL", "GPT-OSS 20B"),
-    ("LLM CALLS", "1 / RUN"),
-    ("ORCHESTRATION", "CrewAI"),
-]
+with m1:
+    st.markdown(
+        """
+        <div class="metric-card">
+            <div class="metric-label">WORKFLOW STAGES</div>
+            <div class="metric-value">06</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-for col, (label, value) in zip(
-    [m1, m2, m3, m4],
-    metric_data
-):
-    with col:
-        st.markdown(
-            f"""
-            <div class="metric">
-                <div class="metric-label">{label}</div>
-                <div class="metric-value">{value}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+with m2:
+    st.markdown(
+        """
+        <div class="metric-card">
+            <div class="metric-label">LLM CALLS / RUN</div>
+            <div class="metric-value">01</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with m3:
+    st.markdown(
+        """
+        <div class="metric-card">
+            <div class="metric-label">MODEL</div>
+            <div class="metric-value">20B</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with m4:
+    st.markdown(
+        """
+        <div class="metric-card">
+            <div class="metric-label">DEPLOYMENT</div>
+            <div class="metric-value">CLOUD</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+st.write("")
 
 
 # ============================================================
-# INPUT
+# BUSINESS REQUEST
 # ============================================================
 
-st.markdown(
-    '<div class="section">Business Request</div>',
-    unsafe_allow_html=True
+st.markdown("### Business Request")
+
+sample = st.selectbox(
+    "Quick scenario",
+    [
+        "Custom request",
+        "Employee Onboarding",
+        "Software Rollout",
+        "Office Relocation",
+        "Customer Support Improvement",
+    ],
 )
 
-scenario = st.selectbox(
-    "Choose a sample scenario",
-    ["Custom Request"] + list(examples.keys())
-)
 
-default_request = (
-    ""
-    if scenario == "Custom Request"
-    else examples[scenario]
-)
+default_text = ""
 
-business_request = st.text_area(
-    "Describe your business problem",
-    value=default_request,
+if sample == "Employee Onboarding":
+    default_text = (
+        "Our company is growing quickly and new employees are having "
+        "difficulty completing HR, IT, security and department onboarding. "
+        "Design a better onboarding process."
+    )
+
+elif sample == "Software Rollout":
+    default_text = (
+        "A company is introducing a new internal software platform. "
+        "Employees need training, communication, migration support and "
+        "a controlled rollout plan."
+    )
+
+elif sample == "Office Relocation":
+    default_text = (
+        "Our organization is moving to a new office. We need a plan "
+        "covering employees, IT infrastructure, vendors, communication, "
+        "facilities and business continuity."
+    )
+
+elif sample == "Customer Support Improvement":
+    default_text = (
+        "Customer support response times are increasing and customers "
+        "are complaining about inconsistent answers. Create an improved "
+        "support operations workflow."
+    )
+
+
+request = st.text_area(
+    "Describe your business problem or process",
+    value=default_text,
     height=170,
     placeholder=(
-        "Example: We are onboarding 30 employees and need "
-        "HR, IT and department managers to coordinate."
+        "Example: Our company wants to improve employee onboarding..."
     ),
 )
 
-run = st.button(
-    "🚀 Run BusinessOps AI",
+
+# ============================================================
+# EXECUTE
+# ============================================================
+
+if st.button(
+    "⚡ RUN BUSINESSOPS AI",
     type="primary",
     use_container_width=True,
-)
+):
 
+    if not request.strip():
 
-# ============================================================
-# EXECUTION
-# ============================================================
-
-if run:
-
-    if not business_request.strip():
-        st.warning("Please enter a business request.")
-
-    elif len(business_request.strip()) < 20:
-        st.warning("Please provide more details about the business problem.")
+        st.warning("Please enter a business request first.")
 
     else:
 
-        progress = st.progress(0)
-        status = st.empty()
+        with st.spinner(
+            "BusinessOps AI is analyzing the request and generating the report..."
+        ):
 
-        try:
-            status.info("Starting CrewAI workflow...")
-            progress.progress(15)
+            flow = BusinessOpsFlow()
+            flow.state["request"] = request
 
-            flow = BusinessOpsFlow(
-                business_request
-            )
-
-            status.info("Business Analysis...")
-            progress.progress(30)
-
-            status.info("Operations Planning...")
-            progress.progress(50)
-
-            status.info("QA Audit...")
-            progress.progress(70)
-
-            # CrewAI Flow runs the workflow.
             result = flow.kickoff()
 
-            progress.progress(100)
+        st.success("Business workflow completed.")
 
-            status.success(
-                "Workflow completed — one Groq generation used."
-            )
+        st.markdown("### Intelligence Report")
 
-            st.markdown(
-                '<div class="section">Business Execution Report</div>',
-                unsafe_allow_html=True
-            )
+        st.markdown(
+            f"""
+            <div class="report">
+            {result.replace(chr(10), "<br>")}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-            st.markdown(result)
-
-        except Exception as error:
-
-            progress.empty()
-            status.empty()
-
-            error_text = str(error)
-            lower = error_text.lower()
-
-            if (
-                "rate_limit" in lower
-                or "rate limit" in lower
-                or "429" in lower
-                or "tokens per minute" in lower
-                or "token-per-minute" in lower
-            ):
-                st.error("Groq TPM rate limit is currently active.")
-
-                st.warning(
-                    "Wait 30–60 seconds and run the workflow ONCE. "
-                    "This version sends only one Groq generation per run."
-                )
-
-            elif "groq_api_key" in lower:
-                st.error("GROQ_API_KEY is missing.")
-
-                st.code(
-                    'GROQ_API_KEY = "your_groq_api_key"',
-                    language="toml"
-                )
-
-            elif "empty response" in lower or "none or empty" in lower:
-                st.error(
-                    "Groq returned an empty response. "
-                    "Please run once again after a short wait."
-                )
-
-            else:
-                st.error(
-                    "BusinessOps workflow failed."
-                )
-                st.exception(error)
+        st.download_button(
+            "Download Report",
+            data=str(result),
+            file_name="businessops_report.txt",
+            mime="text/plain",
+            use_container_width=True,
+        )
 
 
 # ============================================================
@@ -620,7 +651,12 @@ if run:
 
 st.divider()
 
-st.caption(
-    "BusinessOps AI • CrewAI Flow • Groq • GPT-OSS 20B • "
-    "One-call free-tier architecture"
+st.markdown(
+    """
+    <div style="text-align:center;color:#667386;font-size:12px;">
+        BusinessOps AI • Autonomous Business Process Intelligence
+        • CrewAI + Groq • Free-tier deployment architecture
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
