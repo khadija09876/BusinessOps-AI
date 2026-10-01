@@ -34,6 +34,10 @@ st.markdown(
     """
     <style>
 
+    /* ======================================================
+       GLOBAL APPLICATION
+       ====================================================== */
+
     .stApp {
         background:
             radial-gradient(
@@ -74,7 +78,10 @@ st.markdown(
         background: transparent !important;
     }
 
-    /* SIDEBAR */
+
+    /* ======================================================
+       SIDEBAR
+       ====================================================== */
 
     section[data-testid="stSidebar"] {
         background:
@@ -102,7 +109,10 @@ st.markdown(
         letter-spacing: -0.4px;
     }
 
-    /* TYPOGRAPHY */
+
+    /* ======================================================
+       TYPOGRAPHY
+       ====================================================== */
 
     h1 {
         color: #f5f4f1 !important;
@@ -140,6 +150,11 @@ st.markdown(
         color: #858992;
     }
 
+
+    /* ======================================================
+       CAPTIONS / LABELS
+       ====================================================== */
+
     [data-testid="stCaptionContainer"] {
         color: #858a94 !important;
     }
@@ -150,7 +165,10 @@ st.markdown(
         font-weight: 650 !important;
     }
 
-    /* CARDS */
+
+    /* ======================================================
+       CARDS / CONTAINERS
+       ====================================================== */
 
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background:
@@ -167,7 +185,10 @@ st.markdown(
             0 14px 38px rgba(0, 0, 0, 0.20);
     }
 
-    /* INPUTS */
+
+    /* ======================================================
+       INPUTS
+       ====================================================== */
 
     textarea,
     input {
@@ -194,7 +215,10 @@ st.markdown(
             0 0 20px rgba(122, 34, 55, 0.08) !important;
     }
 
-    /* SELECTBOX */
+
+    /* ======================================================
+       SELECTBOX
+       ====================================================== */
 
     div[data-baseweb="select"] > div {
         background: #0c0e12 !important;
@@ -208,7 +232,10 @@ st.markdown(
         color: #ddddda !important;
     }
 
-    /* BUTTONS */
+
+    /* ======================================================
+       BUTTONS
+       ====================================================== */
 
     div.stButton > button {
         min-height: 45px;
@@ -252,7 +279,10 @@ st.markdown(
         transform: translateY(-1px);
     }
 
-    /* DOWNLOAD BUTTONS */
+
+    /* ======================================================
+       DOWNLOAD BUTTONS
+       ====================================================== */
 
     div[data-testid="stDownloadButton"] button {
         min-height: 43px;
@@ -277,7 +307,10 @@ st.markdown(
         background: #13151a;
     }
 
-    /* METRICS */
+
+    /* ======================================================
+       METRICS
+       ====================================================== */
 
     div[data-testid="stMetric"] {
         background:
@@ -308,7 +341,10 @@ st.markdown(
         font-weight: 800 !important;
     }
 
-    /* TABS */
+
+    /* ======================================================
+       TABS
+       ====================================================== */
 
     button[data-baseweb="tab"] {
         color: #777d87 !important;
@@ -328,7 +364,10 @@ st.markdown(
         background: #8c334d !important;
     }
 
-    /* EXPANDER */
+
+    /* ======================================================
+       EXPANDER
+       ====================================================== */
 
     div[data-testid="stExpander"] {
         background:
@@ -346,19 +385,28 @@ st.markdown(
         color: #d7d7d4 !important;
     }
 
-    /* ALERTS */
+
+    /* ======================================================
+       ALERTS
+       ====================================================== */
 
     div[data-testid="stAlert"] {
         border-radius: 10px !important;
     }
 
-    /* DIVIDERS */
+
+    /* ======================================================
+       DIVIDERS
+       ====================================================== */
 
     hr {
         border-color: rgba(255, 255, 255, 0.055) !important;
     }
 
-    /* SCROLLBAR */
+
+    /* ======================================================
+       SCROLLBAR
+       ====================================================== */
 
     ::-webkit-scrollbar {
         width: 7px;
@@ -378,7 +426,10 @@ st.markdown(
         background: #663044;
     }
 
-    /* MOBILE */
+
+    /* ======================================================
+       MOBILE
+       ====================================================== */
 
     @media (max-width: 900px) {
 
@@ -419,6 +470,509 @@ class BusinessOpsFlow(Flow):
             "request": self.state.get("request", "").strip()
         }
 
-    # ========================================================
-    # BAQI AAPKA EXISTING CREWAI CODE YAHAN SE SAME RAHEGA
-    # ========================================================
+    @listen(intake)
+    def business_analysis(self, data):
+        request = data["request"]
+
+        return {
+            "request": request,
+            "analysis": (
+                "Identify the business objective, stakeholders, "
+                "current situation, constraints, and expected outcome."
+            ),
+        }
+
+    @listen(business_analysis)
+    def operations_planning(self, data):
+        return {
+            **data,
+            "operations": (
+                "Design practical operational steps, responsible roles, "
+                "dependencies, resources, and measurable outcomes."
+            ),
+        }
+
+    @listen(operations_planning)
+    def risk_management(self, data):
+        return {
+            **data,
+            "risk": (
+                "Identify operational, people, technology, communication, "
+                "timeline, and implementation risks."
+            ),
+        }
+
+    @listen(risk_management)
+    def action_planning(self, data):
+        return {
+            **data,
+            "actions": (
+                "Create prioritized next actions and define what should "
+                "happen immediately, next, and later."
+            ),
+        }
+
+    @listen(action_planning)
+    def quality_control(self, data):
+        return {
+            **data,
+            "qa": (
+                "Check whether the proposed workflow is practical, "
+                "complete, consistent, and measurable."
+            ),
+        }
+
+    @listen(quality_control)
+    def final_report(self, data):
+
+        if not data["request"]:
+            return "Please enter a business request."
+
+        api_key = st.secrets.get("GROQ_API_KEY")
+
+        if not api_key:
+            return (
+                "GROQ_API_KEY is missing. "
+                "Add it in Streamlit Cloud → Settings → Secrets."
+            )
+
+        client = Groq(api_key=api_key)
+
+        prompt = f"""
+You are BusinessOps AI, an autonomous business process intelligence
+assistant.
+
+Analyze this business request:
+
+{data["request"][:2500]}
+
+Internal workflow stages:
+
+1. Business Analysis
+{data["analysis"]}
+
+2. Operations Planning
+{data["operations"]}
+
+3. Risk Management
+{data["risk"]}
+
+4. Action Planning
+{data["actions"]}
+
+5. Quality Control
+{data["qa"]}
+
+Generate a professional Business Operations Report.
+
+Use exactly these sections:
+
+## Executive Summary
+## Business Analysis
+## Recommended Workflow
+## Risks & Mitigations
+## Priority Actions
+## KPIs / Success Metrics
+## QA Check
+
+Requirements:
+- Be practical and specific.
+- Do not invent company-specific facts.
+- Use concise professional language.
+- Give actionable recommendations.
+- Maximum approximately 450 words.
+"""
+
+        try:
+
+            response = client.chat.completions.create(
+                model=MODEL,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a professional business operations "
+                            "intelligence assistant. Produce concise, "
+                            "structured and actionable reports."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
+                temperature=0.1,
+                max_completion_tokens=600,
+                reasoning_effort="low",
+            )
+
+            result = response.choices[0].message.content
+
+            if not result or not result.strip():
+                return "The AI returned an empty response. Please try again."
+
+            return result.strip()
+
+        except Exception as e:
+
+            error_text = str(e).lower()
+
+            if "rate limit" in error_text or "429" in error_text:
+
+                time.sleep(3)
+
+                try:
+
+                    retry = client.chat.completions.create(
+                        model=MODEL,
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt,
+                            }
+                        ],
+                        temperature=0.1,
+                        max_completion_tokens=600,
+                        reasoning_effort="low",
+                    )
+
+                    retry_result = retry.choices[0].message.content
+
+                    if retry_result and retry_result.strip():
+                        return retry_result.strip()
+
+                    return "Groq returned an empty response after retry."
+
+                except Exception as retry_error:
+
+                    return (
+                        "Groq rate limit is temporarily active. "
+                        "Please wait a few seconds and run again.\n\n"
+                        f"Technical detail: {retry_error}"
+                    )
+
+            return (
+                "BusinessOps AI could not complete the analysis.\n\n"
+                f"Technical detail: {e}"
+            )
+
+
+# ============================================================
+# SIDEBAR
+# ============================================================
+
+with st.sidebar:
+
+    st.markdown("## ⚡ BusinessOps AI")
+
+    st.markdown(
+        """
+        <div class="small-muted">
+        Autonomous Business Process Intelligence Platform
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+
+    st.markdown("### Technology")
+
+    st.write("🐍 Python 3.12")
+    st.write("🎨 Streamlit")
+    st.write("🤖 CrewAI Flow")
+    st.write("⚡ Groq API")
+    st.write("🧠 GPT-OSS 20B")
+    st.write("☁️ Streamlit Cloud")
+
+    st.divider()
+
+    st.markdown("### Architecture")
+
+    st.markdown(
+        """
+        **Single Groq generation + multi-stage CrewAI Flow**
+
+        The workflow contains multiple business intelligence
+        stages while keeping the actual LLM generation to
+        one primary request per run.
+        """
+    )
+
+    st.divider()
+
+    st.caption("Free-tier friendly architecture")
+    st.caption("No Ollama • No local model • No paid database")
+
+
+# ============================================================
+# HERO
+# ============================================================
+
+st.markdown(
+    """
+    <div class="hero">
+
+        <span class="badge">
+            AUTONOMOUS BUSINESS INTELLIGENCE
+        </span>
+
+        <h1>BusinessOps AI</h1>
+
+        <p>
+        Transform complex business requests into structured
+        operational plans, risk controls, priority actions,
+        and measurable outcomes using an agentic AI workflow.
+        </p>
+
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# WORKFLOW STAGES
+# ============================================================
+
+st.markdown("### Agentic Workflow")
+
+stages = [
+    (
+        "01",
+        "Business Analyst",
+        "Understands the business problem, objective, stakeholders and constraints.",
+    ),
+    (
+        "02",
+        "Operations Planner",
+        "Converts the problem into an executable operational workflow.",
+    ),
+    (
+        "03",
+        "Risk Manager",
+        "Identifies implementation risks and practical mitigation strategies.",
+    ),
+    (
+        "04",
+        "Action Planner",
+        "Converts recommendations into prioritized next actions.",
+    ),
+    (
+        "05",
+        "KPI Designer",
+        "Defines measurable outcomes and success indicators.",
+    ),
+    (
+        "06",
+        "QA Auditor",
+        "Performs a final quality and consistency review.",
+    ),
+]
+
+cols = st.columns(3)
+
+for i, (number, title, description) in enumerate(stages):
+
+    with cols[i % 3]:
+
+        st.markdown(
+            f"""
+            <div class="stage">
+
+                <div class="stage-number">
+                    {number} / 06
+                </div>
+
+                <div class="stage-title">
+                    {title}
+                </div>
+
+                <div class="stage-text">
+                    {description}
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+# ============================================================
+# METRICS
+# ============================================================
+
+m1, m2, m3, m4 = st.columns(4)
+
+with m1:
+    st.markdown(
+        """
+        <div class="metric-card">
+            <div class="metric-label">WORKFLOW STAGES</div>
+            <div class="metric-value">06</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with m2:
+    st.markdown(
+        """
+        <div class="metric-card">
+            <div class="metric-label">LLM CALLS / RUN</div>
+            <div class="metric-value">01</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with m3:
+    st.markdown(
+        """
+        <div class="metric-card">
+            <div class="metric-label">MODEL</div>
+            <div class="metric-value">20B</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with m4:
+    st.markdown(
+        """
+        <div class="metric-card">
+            <div class="metric-label">DEPLOYMENT</div>
+            <div class="metric-value">CLOUD</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+st.write("")
+
+
+# ============================================================
+# BUSINESS REQUEST
+# ============================================================
+
+st.markdown("### Business Request")
+
+sample = st.selectbox(
+    "Quick scenario",
+    [
+        "Custom request",
+        "Employee Onboarding",
+        "Software Rollout",
+        "Office Relocation",
+        "Customer Support Improvement",
+    ],
+)
+
+default_text = ""
+
+if sample == "Employee Onboarding":
+    default_text = (
+        "Our company is growing quickly and new employees are having "
+        "difficulty completing HR, IT, security and department onboarding. "
+        "Design a better onboarding process."
+    )
+
+elif sample == "Software Rollout":
+    default_text = (
+        "A company is introducing a new internal software platform. "
+        "Employees need training, communication, migration support and "
+        "a controlled rollout plan."
+    )
+
+elif sample == "Office Relocation":
+    default_text = (
+        "Our organization is moving to a new office. We need a plan "
+        "covering employees, IT infrastructure, vendors, communication, "
+        "facilities and business continuity."
+    )
+
+elif sample == "Customer Support Improvement":
+    default_text = (
+        "Customer support response times are increasing and customers "
+        "are complaining about inconsistent answers. Create an improved "
+        "support operations workflow."
+    )
+
+
+request = st.text_area(
+    "Describe your business problem or process",
+    value=default_text,
+    height=170,
+    placeholder=(
+        "Example: Our company wants to improve employee onboarding..."
+    ),
+)
+
+
+# ============================================================
+# EXECUTE
+# ============================================================
+
+if st.button(
+    "⚡ RUN BUSINESSOPS AI",
+    type="primary",
+    use_container_width=True,
+):
+
+    if not request.strip():
+
+        st.warning("Please enter a business request first.")
+
+    else:
+
+        with st.spinner(
+            "BusinessOps AI is analyzing the request and generating the report..."
+        ):
+
+            flow = BusinessOpsFlow()
+            flow.state["request"] = request
+
+            result = flow.kickoff()
+
+        st.success("Business workflow completed.")
+
+        st.markdown("### Intelligence Report")
+
+        st.markdown(
+            f"""
+            <div class="report">
+            {result.replace(chr(10), "<br>")}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.download_button(
+            "Download Report",
+            data=str(result),
+            file_name="businessops_report.txt",
+            mime="text/plain",
+            use_container_width=True,
+        )
+
+
+# ============================================================
+# FOOTER
+# ============================================================
+
+st.divider()
+
+st.markdown(
+    """
+    <div style="
+        text-align:center;
+        color:#667386;
+        font-size:12px;
+    ">
+        BusinessOps AI • Autonomous Business Process Intelligence
+        • CrewAI + Groq • Free-tier deployment architecture
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
