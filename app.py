@@ -3,6 +3,7 @@ import io
 import re
 from datetime import datetime
 from textwrap import dedent
+from html import escape
 
 import streamlit as st
 from groq import Groq
@@ -12,7 +13,11 @@ from groq import Groq
 # ============================================================
 
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+)
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.enums import TA_LEFT
 
@@ -48,17 +53,18 @@ MODEL = "openai/gpt-oss-20b"
 # SESSION STATE
 # ============================================================
 
-if "businessops_result" not in st.session_state:
-    st.session_state["businessops_result"] = ""
+session_defaults = {
+    "businessops_result": "",
+    "businessops_request": "",
+    "businessops_report_id": "",
+    "businessops_timestamp": "",
+    "request_draft": "",
+    "last_sample": "",
+}
 
-if "businessops_request" not in st.session_state:
-    st.session_state["businessops_request"] = ""
-
-if "businessops_report_id" not in st.session_state:
-    st.session_state["businessops_report_id"] = ""
-
-if "businessops_timestamp" not in st.session_state:
-    st.session_state["businessops_timestamp"] = ""
+for key, value in session_defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 
 # ============================================================
@@ -71,19 +77,19 @@ st.markdown(
         <style>
 
         /* ======================================================
-           BASE
+           GLOBAL
         ====================================================== */
 
         .stApp {
             background:
                 radial-gradient(
-                    circle at 15% 0%,
-                    rgba(0, 229, 255, 0.075),
+                    circle at 8% 0%,
+                    rgba(0, 229, 255, 0.065),
                     transparent 25%
                 ),
                 radial-gradient(
-                    circle at 90% 5%,
-                    rgba(124, 58, 237, 0.10),
+                    circle at 92% 2%,
+                    rgba(124, 58, 237, 0.085),
                     transparent 27%
                 ),
                 #05070c;
@@ -92,9 +98,9 @@ st.markdown(
         }
 
         .main .block-container {
-            max-width: 1420px;
-            padding-top: 1.2rem;
-            padding-bottom: 2.5rem;
+            max-width: 1380px;
+            padding-top: 1rem;
+            padding-bottom: 2rem;
         }
 
         #MainMenu,
@@ -127,17 +133,17 @@ st.markdown(
         }
 
         section[data-testid="stSidebar"] > div {
-            padding-top: 1rem;
+            padding-top: 0.8rem;
         }
 
         .brand {
-            padding: 12px 10px 18px 10px;
+            padding: 12px 9px 18px 9px;
         }
 
         .brand-mark {
             width: 40px;
             height: 40px;
-            border-radius: 12px;
+            border-radius: 11px;
 
             display: flex;
             align-items: center;
@@ -159,11 +165,11 @@ st.markdown(
         }
 
         .brand-name {
-            margin-top: 11px;
+            margin-top: 10px;
             color: #ffffff;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 850;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.4px;
         }
 
         .brand-desc {
@@ -193,25 +199,33 @@ st.markdown(
         .system-value {
             margin-top: 5px;
             color: #67e8f9;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 750;
         }
 
         .system-dot {
             display: inline-block;
+
             width: 6px;
             height: 6px;
+
             border-radius: 50%;
+
             background: #22d3ee;
+
             margin-right: 5px;
-            box-shadow: 0 0 10px rgba(34,211,238,0.8);
+
+            box-shadow:
+                0 0 10px rgba(34,211,238,0.8);
         }
 
         .side-info {
             margin-top: 13px;
+
             color: #505d70;
+
             font-size: 9px;
-            line-height: 1.6;
+            line-height: 1.65;
         }
 
 
@@ -223,9 +237,9 @@ st.markdown(
             position: relative;
             overflow: hidden;
 
-            padding: 31px 34px 30px 34px;
+            padding: 28px 32px 27px 32px;
 
-            border-radius: 22px;
+            border-radius: 20px;
 
             background:
                 linear-gradient(
@@ -237,9 +251,9 @@ st.markdown(
             border: 1px solid rgba(255,255,255,0.065);
 
             box-shadow:
-                0 20px 70px rgba(0,0,0,0.25);
+                0 20px 65px rgba(0,0,0,0.24);
 
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .hero::after {
@@ -247,26 +261,28 @@ st.markdown(
 
             position: absolute;
 
-            right: -90px;
-            top: -120px;
+            right: -100px;
+            top: -130px;
 
-            width: 280px;
-            height: 280px;
+            width: 300px;
+            height: 300px;
 
             border-radius: 50%;
 
             background:
                 radial-gradient(
                     circle,
-                    rgba(124,58,237,0.15),
+                    rgba(124,58,237,0.14),
                     transparent 65%
                 );
+
+            pointer-events: none;
         }
 
         .hero-badge {
             display: inline-flex;
 
-            padding: 6px 10px;
+            padding: 5px 9px;
 
             border-radius: 20px;
 
@@ -278,19 +294,19 @@ st.markdown(
 
             font-size: 8px;
             font-weight: 850;
-            letter-spacing: 1.4px;
+            letter-spacing: 1.35px;
         }
 
         .hero-title {
-            margin-top: 13px;
+            margin-top: 12px;
 
-            font-size: clamp(38px, 5vw, 58px);
+            font-size: clamp(36px, 5vw, 56px);
 
             line-height: 1;
 
             font-weight: 900;
 
-            letter-spacing: -2.8px;
+            letter-spacing: -2.6px;
 
             color: #f8fafc;
         }
@@ -300,22 +316,21 @@ st.markdown(
         }
 
         .hero-desc {
-            margin-top: 12px;
+            margin-top: 11px;
 
-            max-width: 760px;
+            max-width: 730px;
 
             color: #7f8da1;
 
-            font-size: 13px;
-
+            font-size: 12px;
             line-height: 1.7;
         }
 
         .hero-line {
-            width: 85px;
+            width: 78px;
             height: 2px;
 
-            margin-top: 19px;
+            margin-top: 17px;
 
             border-radius: 10px;
 
@@ -329,41 +344,54 @@ st.markdown(
 
 
         /* ======================================================
-           COMPACT SECTION
+           SECTION LABELS
         ====================================================== */
 
         .section {
-            margin-top: 19px;
-            margin-bottom: 10px;
+            margin-top: 18px;
+            margin-bottom: 9px;
+        }
+
+        .eyebrow {
+            color: #22d3ee;
+            font-size: 8px;
+            font-weight: 850;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
         }
 
         .section-title {
+            margin-top: 3px;
+
             color: #f1f5f9;
+
             font-size: 16px;
             font-weight: 800;
+
             letter-spacing: -0.25px;
         }
 
         .section-desc {
             color: #5f6d80;
+
             font-size: 10px;
+
             margin-top: 3px;
         }
 
 
         /* ======================================================
-           WORKFLOW STRIP
+           WORKFLOW
         ====================================================== */
 
         .flow-strip {
             display: flex;
             align-items: center;
-            gap: 7px;
+            gap: 6px;
 
-            padding: 11px;
+            padding: 9px;
 
-            background:
-                rgba(9,14,23,0.95);
+            background: rgba(9,14,23,0.95);
 
             border: 1px solid rgba(255,255,255,0.055);
 
@@ -375,27 +403,40 @@ st.markdown(
         .flow-item {
             flex: 1;
 
-            min-width: 135px;
+            min-width: 120px;
 
             padding: 10px 11px;
 
-            border-radius: 10px;
+            border-radius: 9px;
 
             background: rgba(255,255,255,0.022);
 
             border: 1px solid rgba(255,255,255,0.045);
+
+            transition: 0.2s ease;
+        }
+
+        .flow-item:hover {
+            border-color: rgba(34,211,238,0.20);
+
+            background:
+                rgba(34,211,238,0.035);
         }
 
         .flow-num {
             color: #22d3ee;
+
             font-size: 8px;
             font-weight: 850;
+
             letter-spacing: 1px;
         }
 
         .flow-name {
             margin-top: 4px;
+
             color: #e5e7eb;
+
             font-size: 10px;
             font-weight: 750;
         }
@@ -411,7 +452,7 @@ st.markdown(
         ====================================================== */
 
         .control-panel {
-            padding: 17px;
+            padding: 16px;
 
             background:
                 linear-gradient(
@@ -422,50 +463,63 @@ st.markdown(
 
             border: 1px solid rgba(255,255,255,0.06);
 
-            border-radius: 17px;
+            border-radius: 16px;
         }
 
         .control-label {
             color: #64748b;
+
             font-size: 8px;
             font-weight: 800;
+
             letter-spacing: 1px;
+
             margin-bottom: 5px;
         }
 
 
         /* ======================================================
-           METRIC CARDS
+           METRICS
         ====================================================== */
 
         .metrics {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 9px;
-            margin-top: 11px;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 8px;
+
+            margin-top: 10px;
         }
 
         .metric {
-            padding: 13px 14px;
+            padding: 12px 13px;
 
-            border-radius: 12px;
+            border-radius: 11px;
 
-            background: rgba(255,255,255,0.022);
+            background:
+                rgba(255,255,255,0.022);
 
-            border: 1px solid rgba(255,255,255,0.05);
+            border:
+                1px solid rgba(255,255,255,0.05);
         }
 
         .metric-label {
             color: #59677a;
+
             font-size: 8px;
             font-weight: 800;
+
             letter-spacing: 1px;
         }
 
         .metric-value {
-            margin-top: 5px;
+            margin-top: 4px;
+
             color: #e5e7eb;
-            font-size: 20px;
+
+            font-size: 19px;
             font-weight: 850;
         }
 
@@ -475,81 +529,96 @@ st.markdown(
 
 
         /* ======================================================
-           REPORT HEADER
+           REPORT META
         ====================================================== */
 
         .report-meta {
             display: flex;
+
             justify-content: space-between;
             align-items: center;
 
-            padding: 13px 15px;
+            padding: 12px 14px;
 
-            border-radius: 12px;
+            border-radius: 11px;
 
-            background: rgba(0,229,255,0.025);
+            background:
+                rgba(0,229,255,0.025);
 
-            border: 1px solid rgba(0,229,255,0.08);
+            border:
+                1px solid rgba(0,229,255,0.08);
 
-            margin-top: 15px;
-            margin-bottom: 9px;
+            margin-top: 14px;
+            margin-bottom: 8px;
         }
 
         .report-name {
             color: #e2e8f0;
-            font-size: 12px;
+
+            font-size: 11px;
             font-weight: 800;
         }
 
         .report-id {
             color: #526176;
-            font-size: 9px;
+
+            font-size: 8px;
+
             margin-top: 3px;
         }
 
         .report-time {
             color: #64748b;
-            font-size: 9px;
+
+            font-size: 8px;
+
             text-align: right;
         }
 
 
         /* ======================================================
-           STATUS STRIP
+           STATUS
         ====================================================== */
 
         .status-strip {
             display: flex;
-            gap: 6px;
 
-            margin-bottom: 13px;
+            gap: 5px;
+
+            margin-bottom: 11px;
         }
 
         .status {
             flex: 1;
 
-            padding: 7px;
+            padding: 7px 5px;
 
             border-radius: 8px;
 
             text-align: center;
 
-            background: rgba(34,197,94,0.035);
+            background:
+                rgba(34,197,94,0.035);
 
-            border: 1px solid rgba(34,197,94,0.08);
+            border:
+                1px solid rgba(34,197,94,0.08);
         }
 
         .status-label {
             color: #526176;
+
             font-size: 7px;
             font-weight: 800;
+
             letter-spacing: 0.8px;
         }
 
         .status-value {
             color: #86efac;
+
             font-size: 8px;
             font-weight: 800;
+
             margin-top: 3px;
         }
 
@@ -559,9 +628,9 @@ st.markdown(
         ====================================================== */
 
         .report-card {
-            padding: 19px;
+            padding: 18px;
 
-            border-radius: 15px;
+            border-radius: 14px;
 
             background:
                 linear-gradient(
@@ -570,7 +639,8 @@ st.markdown(
                     rgba(7,11,18,0.98)
                 );
 
-            border: 1px solid rgba(255,255,255,0.055);
+            border:
+                1px solid rgba(255,255,255,0.055);
         }
 
 
@@ -581,25 +651,39 @@ st.markdown(
         textarea,
         input {
             background: #090f18 !important;
+
             color: #f8fafc !important;
 
-            border: 1px solid #1a2737 !important;
+            border:
+                1px solid #1a2737 !important;
 
-            border-radius: 10px !important;
+            border-radius:
+                9px !important;
         }
 
         textarea:focus,
         input:focus {
-            border-color: #0891b2 !important;
+            border-color:
+                #0891b2 !important;
 
             box-shadow:
-                0 0 0 1px rgba(0,229,255,0.12) !important;
+                0 0 0 1px
+                rgba(0,229,255,0.12) !important;
         }
 
         div[data-baseweb="select"] > div {
-            background: #090f18 !important;
-            border-color: #1a2737 !important;
-            border-radius: 10px !important;
+            background:
+                #090f18 !important;
+
+            border-color:
+                #1a2737 !important;
+
+            border-radius:
+                9px !important;
+        }
+
+        label {
+            color: #8997aa !important;
         }
 
 
@@ -608,11 +692,12 @@ st.markdown(
         ====================================================== */
 
         div.stButton > button {
-            min-height: 44px;
+            min-height: 43px;
 
-            border-radius: 10px;
+            border-radius: 9px;
 
-            border: 1px solid rgba(0,229,255,0.16);
+            border:
+                1px solid rgba(0,229,255,0.16);
 
             background:
                 linear-gradient(
@@ -626,21 +711,29 @@ st.markdown(
             font-weight: 800;
 
             box-shadow:
-                0 9px 25px rgba(0,0,0,0.20);
+                0 9px 25px
+                rgba(0,0,0,0.20);
         }
 
         div.stButton > button:hover {
-            border-color: rgba(103,232,249,0.35);
+            border-color:
+                rgba(103,232,249,0.35);
 
             box-shadow:
-                0 12px 30px rgba(0,229,255,0.10);
+                0 12px 30px
+                rgba(0,229,255,0.10);
         }
 
         div[data-testid="stDownloadButton"] button {
             border-radius: 9px;
+
             background: #0b121d;
-            border: 1px solid #1a2939;
+
+            border:
+                1px solid #1a2939;
+
             color: #dbe5ef;
+
             font-weight: 700;
         }
 
@@ -651,7 +744,9 @@ st.markdown(
 
         button[data-baseweb="tab"] {
             color: #637187 !important;
+
             font-size: 10px !important;
+
             font-weight: 750 !important;
         }
 
@@ -660,7 +755,8 @@ st.markdown(
         }
 
         div[data-baseweb="tab-highlight"] {
-            background: #22d3ee !important;
+            background:
+                #22d3ee !important;
         }
 
 
@@ -669,9 +765,14 @@ st.markdown(
         ====================================================== */
 
         div[data-testid="stExpander"] {
-            background: #080e17;
-            border: 1px solid #182535;
-            border-radius: 11px;
+            background:
+                #080e17;
+
+            border:
+                1px solid #182535;
+
+            border-radius:
+                11px;
         }
 
 
@@ -681,9 +782,12 @@ st.markdown(
 
         .footer {
             text-align: center;
+
             color: #414d5f;
+
             font-size: 9px;
-            padding: 15px;
+
+            padding: 13px;
         }
 
 
@@ -694,7 +798,7 @@ st.markdown(
         @media (max-width: 900px) {
 
             .hero {
-                padding: 25px;
+                padding: 24px;
             }
 
             .hero-title {
@@ -702,7 +806,8 @@ st.markdown(
             }
 
             .metrics {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns:
+                    repeat(2, 1fr);
             }
 
             .status-strip {
@@ -719,6 +824,18 @@ st.markdown(
     ),
     unsafe_allow_html=True,
 )
+
+
+# ============================================================
+# HTML HELPER
+# ============================================================
+
+def render_html(content):
+    """
+    Use Streamlit's native HTML renderer.
+    This prevents raw <div> tags from appearing as text.
+    """
+    st.html(dedent(content))
 
 
 # ============================================================
@@ -861,12 +978,15 @@ def create_pdf(report_text, report_id):
 
     story.append(
         Paragraph(
-            f"Business Operations Intelligence Report · {report_id}",
+            f"Business Operations Intelligence Report · "
+            f"{escape(report_id)}",
             heading_style,
         )
     )
 
-    story.append(Spacer(1, 8))
+    story.append(
+        Spacer(1, 8)
+    )
 
     for raw_line in report_text.splitlines():
 
@@ -874,10 +994,12 @@ def create_pdf(report_text, report_id):
 
         if not raw_line:
 
-            story.append(Spacer(1, 5))
+            story.append(
+                Spacer(1, 5)
+            )
+
             continue
 
-        # Check heading BEFORE cleaning markdown
         if raw_line.startswith("## "):
 
             heading = clean_markdown(
@@ -886,7 +1008,7 @@ def create_pdf(report_text, report_id):
 
             story.append(
                 Paragraph(
-                    heading,
+                    escape(heading),
                     heading_style,
                 )
             )
@@ -899,59 +1021,46 @@ def create_pdf(report_text, report_id):
 
             story.append(
                 Paragraph(
-                    heading,
+                    escape(heading),
                     heading_style,
                 )
             )
 
         elif raw_line.startswith("- "):
 
-            bullet = (
-                clean_markdown(
-                    raw_line[2:].strip()
-                )
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
+            bullet = clean_markdown(
+                raw_line[2:].strip()
             )
 
             story.append(
                 Paragraph(
-                    "• " + bullet,
+                    "• " + escape(bullet),
                     body_style,
                 )
             )
 
         elif raw_line.startswith("* "):
 
-            bullet = (
-                clean_markdown(
-                    raw_line[2:].strip()
-                )
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
+            bullet = clean_markdown(
+                raw_line[2:].strip()
             )
 
             story.append(
                 Paragraph(
-                    "• " + bullet,
+                    "• " + escape(bullet),
                     body_style,
                 )
             )
 
         else:
 
-            safe_line = (
-                clean_markdown(raw_line)
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
+            safe_line = clean_markdown(
+                raw_line
             )
 
             story.append(
                 Paragraph(
-                    safe_line,
+                    escape(safe_line),
                     body_style,
                 )
             )
@@ -977,7 +1086,8 @@ def create_docx(report_text, report_id):
     )
 
     document.add_paragraph(
-        f"Business Operations Intelligence Report · {report_id}"
+        f"Business Operations Intelligence Report · "
+        f"{report_id}"
     )
 
     document.add_paragraph("")
@@ -989,6 +1099,7 @@ def create_docx(report_text, report_id):
         if not line:
 
             document.add_paragraph("")
+
             continue
 
         if line.startswith("## "):
@@ -1180,11 +1291,15 @@ class BusinessOpsFlow(Flow):
 
         if not data["request"]:
 
-            return "Please enter a business request."
+            return (
+                "Please enter a business request."
+            )
 
         try:
 
-            api_key = st.secrets["GROQ_API_KEY"]
+            api_key = st.secrets[
+                "GROQ_API_KEY"
+            ]
 
         except Exception:
 
@@ -1469,46 +1584,43 @@ RULES:
 
 with st.sidebar:
 
-    st.markdown(
-        dedent(
-            """
-            <div class="brand">
+    render_html(
+        """
+        <div class="brand">
 
-                <div class="brand-mark">
-                    ⚡
+            <div class="brand-mark">
+                ⚡
+            </div>
+
+            <div class="brand-name">
+                BusinessOps AI
+            </div>
+
+            <div class="brand-desc">
+                Autonomous business process intelligence
+                for operational decision support.
+            </div>
+
+            <div class="system-card">
+
+                <div class="system-label">
+                    SYSTEM
                 </div>
 
-                <div class="brand-name">
-                    BusinessOps AI
-                </div>
-
-                <div class="brand-desc">
-                    Autonomous business process intelligence
-                    for operational decision support.
-                </div>
-
-                <div class="system-card">
-
-                    <div class="system-label">
-                        SYSTEM
-                    </div>
-
-                    <div class="system-value">
-                        <span class="system-dot"></span>
-                        AI ENGINE READY
-                    </div>
-
-                </div>
-
-                <div class="side-info">
-                    CrewAI Flow · Groq · Streamlit Cloud<br>
-                    Single-generation architecture
+                <div class="system-value">
+                    <span class="system-dot"></span>
+                    AI ENGINE READY
                 </div>
 
             </div>
-            """
-        ),
-        unsafe_allow_html=True,
+
+            <div class="side-info">
+                CrewAI Flow · Groq · Streamlit Cloud<br>
+                Single-generation architecture
+            </div>
+
+        </div>
+        """
     )
 
 
@@ -1516,31 +1628,28 @@ with st.sidebar:
 # HERO
 # ============================================================
 
-st.markdown(
-    dedent(
-        """
-        <div class="hero">
+render_html(
+    """
+    <div class="hero">
 
-            <div class="hero-badge">
-                AUTONOMOUS BUSINESS INTELLIGENCE
-            </div>
-
-            <div class="hero-title">
-                BusinessOps <span>AI</span>
-            </div>
-
-            <div class="hero-desc">
-                Turn an unstructured business problem into a
-                practical workflow, risk register, priority actions,
-                roadmap and measurable KPIs.
-            </div>
-
-            <div class="hero-line"></div>
-
+        <div class="hero-badge">
+            AUTONOMOUS BUSINESS INTELLIGENCE
         </div>
-        """
-    ),
-    unsafe_allow_html=True,
+
+        <div class="hero-title">
+            BusinessOps <span>AI</span>
+        </div>
+
+        <div class="hero-desc">
+            Turn an unstructured business problem into a
+            practical workflow, risk register, priority actions,
+            roadmap and measurable KPIs.
+        </div>
+
+        <div class="hero-line"></div>
+
+    </div>
+    """
 )
 
 
@@ -1548,18 +1657,24 @@ st.markdown(
 # WORKFLOW
 # ============================================================
 
-st.markdown(
-    dedent(
-        """
-        <div class="section">
-            <div class="section-title">Workflow</div>
-            <div class="section-desc">
-                One coordinated CrewAI process from intake to quality audit.
-            </div>
+render_html(
+    """
+    <div class="section">
+
+        <div class="eyebrow">
+            PIPELINE
         </div>
-        """
-    ),
-    unsafe_allow_html=True,
+
+        <div class="section-title">
+            Six-stage operational intelligence flow
+        </div>
+
+        <div class="section-desc">
+            Coordinated CrewAI stages with one Groq generation.
+        </div>
+
+    </div>
+    """
 )
 
 
@@ -1578,41 +1693,53 @@ for index, (number, name) in enumerate(workflow_items):
 
     workflow_html += f"""
         <div class="flow-item">
-            <div class="flow-num">{number}</div>
-            <div class="flow-name">{name}</div>
+
+            <div class="flow-num">
+                {escape(number)}
+            </div>
+
+            <div class="flow-name">
+                {escape(name)}
+            </div>
+
         </div>
     """
 
     if index < len(workflow_items) - 1:
 
         workflow_html += """
-            <div class="flow-arrow">›</div>
+            <div class="flow-arrow">
+                ›
+            </div>
         """
 
 workflow_html += "</div>"
 
-st.markdown(
-    dedent(workflow_html),
-    unsafe_allow_html=True,
-)
+render_html(workflow_html)
 
 
 # ============================================================
-# BUSINESS REQUEST SECTION
+# ANALYSIS WORKSPACE
 # ============================================================
 
-st.markdown(
-    dedent(
-        """
-        <div class="section">
-            <div class="section-title">Analysis Workspace</div>
-            <div class="section-desc">
-                Configure the context, then describe the business challenge.
-            </div>
+render_html(
+    """
+    <div class="section">
+
+        <div class="eyebrow">
+            WORKSPACE
         </div>
-        """
-    ),
-    unsafe_allow_html=True,
+
+        <div class="section-title">
+            Business process analysis
+        </div>
+
+        <div class="section-desc">
+            Set the context and describe the challenge.
+        </div>
+
+    </div>
+    """
 )
 
 
@@ -1620,9 +1747,10 @@ st.markdown(
 # CONTROL PANEL
 # ============================================================
 
-st.markdown(
-    '<div class="control-panel">',
-    unsafe_allow_html=True,
+render_html(
+    """
+    <div class="control-panel">
+    """
 )
 
 c1, c2, c3 = st.columns(3)
@@ -1630,9 +1758,12 @@ c1, c2, c3 = st.columns(3)
 
 with c1:
 
-    st.markdown(
-        '<div class="control-label">SCENARIO</div>',
-        unsafe_allow_html=True,
+    render_html(
+        """
+        <div class="control-label">
+            SCENARIO
+        </div>
+        """
     )
 
     sample = st.selectbox(
@@ -1652,9 +1783,12 @@ with c1:
 
 with c2:
 
-    st.markdown(
-        '<div class="control-label">BUSINESS AREA</div>',
-        unsafe_allow_html=True,
+    render_html(
+        """
+        <div class="control-label">
+            BUSINESS AREA
+        </div>
+        """
     )
 
     department = st.selectbox(
@@ -1676,9 +1810,12 @@ with c2:
 
 with c3:
 
-    st.markdown(
-        '<div class="control-label">PRIORITY</div>',
-        unsafe_allow_html=True,
+    render_html(
+        """
+        <div class="control-label">
+            PRIORITY
+        </div>
+        """
     )
 
     priority = st.selectbox(
@@ -1694,14 +1831,15 @@ with c3:
     )
 
 
-st.markdown(
-    "</div>",
-    unsafe_allow_html=True,
+render_html(
+    """
+    </div>
+    """
 )
 
 
 # ============================================================
-# SCENARIOS
+# SCENARIO TEXT
 # ============================================================
 
 default_text = ""
@@ -1758,6 +1896,23 @@ elif sample == "Vendor Management":
 
 
 # ============================================================
+# PRESERVE USER TEXT
+# ============================================================
+
+if sample != st.session_state.get("last_sample", ""):
+
+    if default_text:
+
+        st.session_state["request_draft"] = default_text
+
+    elif sample == "Custom request":
+
+        st.session_state["request_draft"] = ""
+
+    st.session_state["last_sample"] = sample
+
+
+# ============================================================
 # TIMELINE
 # ============================================================
 
@@ -1779,8 +1934,8 @@ timeline = st.selectbox(
 
 request = st.text_area(
     "Business challenge",
-    value=default_text,
     height=145,
+    key="request_draft",
     placeholder=(
         "Example: Our company wants to improve employee "
         "onboarding across HR, IT and department teams..."
@@ -1817,10 +1972,21 @@ with run_col2:
             use_container_width=True,
         ):
 
-            st.session_state["businessops_result"] = ""
-            st.session_state["businessops_request"] = ""
-            st.session_state["businessops_report_id"] = ""
-            st.session_state["businessops_timestamp"] = ""
+            st.session_state[
+                "businessops_result"
+            ] = ""
+
+            st.session_state[
+                "businessops_request"
+            ] = ""
+
+            st.session_state[
+                "businessops_report_id"
+            ] = ""
+
+            st.session_state[
+                "businessops_timestamp"
+            ] = ""
 
             st.rerun()
 
@@ -1848,8 +2014,11 @@ if run_clicked:
                 flow = BusinessOpsFlow()
 
                 flow.state["request"] = request
+
                 flow.state["department"] = department
+
                 flow.state["priority"] = priority
+
                 flow.state["timeline"] = timeline
 
                 result = flow.kickoff()
@@ -1865,17 +2034,27 @@ if run_clicked:
 
         report_id = (
             "BO-"
-            + now.strftime("%Y%m%d-%H%M%S")
+            + now.strftime(
+                "%Y%m%d-%H%M%S"
+            )
         )
 
-        st.session_state["businessops_result"] = result
+        st.session_state[
+            "businessops_result"
+        ] = result
 
-        st.session_state["businessops_request"] = request
+        st.session_state[
+            "businessops_request"
+        ] = request
 
-        st.session_state["businessops_report_id"] = report_id
+        st.session_state[
+            "businessops_report_id"
+        ] = report_id
 
-        st.session_state["businessops_timestamp"] = (
-            now.strftime("%d %b %Y · %I:%M %p")
+        st.session_state[
+            "businessops_timestamp"
+        ] = now.strftime(
+            "%d %b %Y · %I:%M %p"
         )
 
         st.rerun()
@@ -1917,30 +2096,30 @@ if result:
     # REPORT META
     # ========================================================
 
-    st.markdown(
-        dedent(
-            f"""
-            <div class="report-meta">
+    render_html(
+        f"""
+        <div class="report-meta">
 
-                <div>
-                    <div class="report-name">
-                        Business Intelligence Report
-                    </div>
+            <div>
 
-                    <div class="report-id">
-                        {report_id} · CrewAI workflow
-                    </div>
+                <div class="report-name">
+                    Business Intelligence Report
                 </div>
 
-                <div class="report-time">
-                    {report_time}<br>
-                    01 AI generation
+                <div class="report-id">
+                    {escape(report_id)}
+                    · CrewAI workflow
                 </div>
 
             </div>
-            """
-        ),
-        unsafe_allow_html=True,
+
+            <div class="report-time">
+                {escape(report_time)}<br>
+                01 AI generation
+            </div>
+
+        </div>
+        """
     )
 
 
@@ -1963,22 +2142,21 @@ if result:
 
         status_html += f"""
             <div class="status">
+
                 <div class="status-label">
-                    {status}
+                    {escape(status)}
                 </div>
 
                 <div class="status-value">
                     ✓ READY
                 </div>
+
             </div>
         """
 
     status_html += "</div>"
 
-    st.markdown(
-        dedent(status_html),
-        unsafe_allow_html=True,
-    )
+    render_html(status_html)
 
 
     # ========================================================
@@ -2010,58 +2188,63 @@ if result:
         sections
     )
 
-    st.markdown(
-        dedent(
-            f"""
-            <div class="metrics">
+    render_html(
+        f"""
+        <div class="metrics">
 
-                <div class="metric">
-                    <div class="metric-label">
-                        ACTION ITEMS
-                    </div>
+            <div class="metric">
 
-                    <div class="metric-value">
-                        <span>{action_count}</span>
-                    </div>
+                <div class="metric-label">
+                    ACTION ITEMS
                 </div>
 
-
-                <div class="metric">
-                    <div class="metric-label">
-                        RISK ITEMS
-                    </div>
-
-                    <div class="metric-value">
-                        <span>{risk_count}</span>
-                    </div>
-                </div>
-
-
-                <div class="metric">
-                    <div class="metric-label">
-                        INFO GAPS
-                    </div>
-
-                    <div class="metric-value">
-                        <span>{gap_count}</span>
-                    </div>
-                </div>
-
-
-                <div class="metric">
-                    <div class="metric-label">
-                        REPORT SECTIONS
-                    </div>
-
-                    <div class="metric-value">
-                        <span>{section_count}</span>
-                    </div>
+                <div class="metric-value">
+                    <span>{action_count}</span>
                 </div>
 
             </div>
-            """
-        ),
-        unsafe_allow_html=True,
+
+
+            <div class="metric">
+
+                <div class="metric-label">
+                    RISK ITEMS
+                </div>
+
+                <div class="metric-value">
+                    <span>{risk_count}</span>
+                </div>
+
+            </div>
+
+
+            <div class="metric">
+
+                <div class="metric-label">
+                    INFO GAPS
+                </div>
+
+                <div class="metric-value">
+                    <span>{gap_count}</span>
+                </div>
+
+            </div>
+
+
+            <div class="metric">
+
+                <div class="metric-label">
+                    REPORT SECTIONS
+                </div>
+
+                <div class="metric-value">
+                    <span>{section_count}</span>
+                </div>
+
+            </div>
+
+        </div>
+        """
     )
 
 
@@ -2288,9 +2471,13 @@ if result:
                 with col:
 
                     try:
-                        numeric_score = int(score)
+
+                        numeric_score = int(
+                            score
+                        )
 
                     except Exception:
+
                         numeric_score = 0
 
                     st.metric(
@@ -2320,18 +2507,25 @@ if result:
 
     st.write("")
 
-    st.markdown(
-        dedent(
-            """
-            <div class="section">
-                <div class="section-title">Export</div>
-                <div class="section-desc">
-                    Save the generated report for documentation or presentation.
-                </div>
+    render_html(
+        """
+        <div class="section">
+
+            <div class="eyebrow">
+                OUTPUT
             </div>
-            """
-        ),
-        unsafe_allow_html=True,
+
+            <div class="section-title">
+                Export report
+            </div>
+
+            <div class="section-desc">
+                Save the generated report for documentation
+                or presentation.
+            </div>
+
+        </div>
+        """
     )
 
     pdf_file = create_pdf(
@@ -2397,25 +2591,24 @@ if result:
 
 
 # ============================================================
-# SMALL CAPABILITY LINE
+# CAPABILITY LINE
 # ============================================================
 
 st.write("")
 
-st.markdown(
-    dedent(
-        """
-        <div style="
-            text-align:center;
-            padding:9px;
-            color:#4b596c;
-            font-size:9px;
-        ">
-            Business Analysis · Operations · Risk · Actions · Roadmap · KPIs · QA
-        </div>
-        """
-    ),
-    unsafe_allow_html=True,
+render_html(
+    """
+    <div style="
+        text-align:center;
+        padding:8px;
+        color:#4b596c;
+        font-size:9px;
+        letter-spacing:0.2px;
+    ">
+        Business Analysis · Operations · Risk · Actions ·
+        Roadmap · KPIs · QA
+    </div>
+    """
 )
 
 
@@ -2425,13 +2618,10 @@ st.markdown(
 
 st.divider()
 
-st.markdown(
-    dedent(
-        """
-        <div class="footer">
-            BusinessOps AI · CrewAI + Groq · Streamlit Cloud
-        </div>
-        """
-    ),
-    unsafe_allow_html=True,
+render_html(
+    """
+    <div class="footer">
+        BusinessOps AI · CrewAI + Groq · Streamlit Cloud
+    </div>
+    """
 )
