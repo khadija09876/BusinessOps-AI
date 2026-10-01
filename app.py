@@ -598,6 +598,17 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
         with r_cols[2]:
             st.success("**Phase 3: Optimization & QA**\n\n• Evaluate performance metrics\n• Continuous quality audits\n• Final sign-off & handoff")
 
+        # Risk Operations Intelligence Feature
+        st.write("")
+        st.markdown("### 🛡️ Risk Operations Intelligence")
+        ro1, ro2, ro3 = st.columns(3)
+        with ro1:
+            st.error("**Operational Bottlenecks**\n\n• Resource allocation limits\n• Cross-department delays\n• Workflow friction points")
+        with ro2:
+            st.warning("**Mitigation Strategy**\n\n• Early escalation matrix\n• Automated tracking triggers\n• Contingency buffer assignment")
+        with ro3:
+            st.success("**Continuity Assurance**\n\n• Backup protocol channels\n• Regular status checkpoints\n• Stakeholder alignment validation")
+
         st.write("")
         st.markdown("### Intelligence Report")
         
