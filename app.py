@@ -346,7 +346,7 @@ class BusinessOpsFlow(Flow):
         if not api_key:
             return (
                 "GROQ_API_KEY is missing. "
-                "Add it in Streamlit Cloud → Settings → Secrets or provide it in the sidebar API configuration."
+                "Add it in Streamlit Cloud → Settings → Secrets."
             )
 
         client = Groq(api_key=api_key)
@@ -437,17 +437,7 @@ with st.sidebar:
     st.markdown("## ⚡ BusinessOps AI")
     st.markdown("<p style='font-size:12px; color:#969aa3;'>Autonomous Business Process Intelligence Platform</p>", unsafe_allow_html=True)
     st.divider()
-    
-    # Feature 1: User-Provided API Key Fallback
-    st.markdown("### 🔑 API Configuration")
-    user_api_input = st.text_input("Groq API Key (Optional)", type="password", placeholder="gsk_...", help="Provide your own Groq key to bypass global rate limits.")
-    if user_api_input:
-        st.session_state["user_groq_api_key"] = user_api_input
-        st.success("Using custom API key.")
-    else:
-        st.session_state["user_groq_api_key"] = None
 
-    st.divider()
     st.markdown("### Technology")
     st.write("🐍 Python 3.12")
     st.write("🎨 Streamlit")
@@ -594,7 +584,7 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
         
         st.write("")
         st.markdown("---")
-        st.markdown("### 🎛️ Interactive Intelligence Dashboard")
+        st.markdown("### 🎛️️ Interactive Intelligence Dashboard")
 
         # Tab Navigation to keep view clean and organized
         tab1, tab2, tab3, tab4 = st.tabs([
@@ -624,7 +614,7 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
                 dict(Task="Phase 3: Optimization & QA", Start="2026-03-21", Finish="2026-03-30", Phase="Optimization")
             ])
             fig = px.timeline(gantt_data, x_start="Start", x_end="Finish", y="Task", color="Phase",
-                              color_discrete_sequence=["#79283f", "#49212d", "#b14c65"])
+                               color_discrete_sequence=["#79283f", "#49212d", "#b14c65"])
             fig.update_yaxes(autorange="reversed")
             fig.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
@@ -730,7 +720,7 @@ if "last_report" in st.session_state and st.session_state["last_report"]:
             with st.spinner("Analyzing operational plan..."):
                 api_key = st.session_state.get("user_groq_api_key") or st.secrets.get("GROQ_API_KEY")
                 if not api_key:
-                    chat_response = "API key missing. Please provide a Groq API key in the sidebar."
+                    chat_response = "API key missing. Please configure GROQ_API_KEY in Streamlit secrets."
                 else:
                     try:
                         chat_client = Groq(api_key=api_key)
