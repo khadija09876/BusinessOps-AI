@@ -1,39 +1,36 @@
 import time
 import io
 import re
+from datetime import datetime
+
 import streamlit as st
 from groq import Groq
 
 # ============================================================
-# PDF GENERATION
+# PDF
 # ============================================================
 
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
-)
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.enums import TA_LEFT
 
 # ============================================================
-# WORD / DOCX GENERATION
+# DOCX
 # ============================================================
 
 from docx import Document
 from docx.shared import Pt
 
 # ============================================================
-# CREWAI FLOW
+# CREWAI
 # ============================================================
 
 from crewai.flow import Flow, start, listen
 
 
 # ============================================================
-# BUSINESSOPS AI
-# Autonomous Business Process Intelligence Platform
+# APP CONFIG
 # ============================================================
 
 st.set_page_config(
@@ -43,16 +40,28 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-
-# ============================================================
-# CONFIG
-# ============================================================
-
 MODEL = "openai/gpt-oss-20b"
 
 
 # ============================================================
-# PREMIUM UI
+# SESSION STATE
+# ============================================================
+
+if "businessops_result" not in st.session_state:
+    st.session_state["businessops_result"] = ""
+
+if "businessops_request" not in st.session_state:
+    st.session_state["businessops_request"] = ""
+
+if "businessops_report_id" not in st.session_state:
+    st.session_state["businessops_report_id"] = ""
+
+if "businessops_timestamp" not in st.session_state:
+    st.session_state["businessops_timestamp"] = ""
+
+
+# ============================================================
+# PREMIUM DARK UI
 # ============================================================
 
 st.markdown(
@@ -60,45 +69,33 @@ st.markdown(
     <style>
 
     /* ======================================================
-       GLOBAL
+       BASE
        ====================================================== */
 
     .stApp {
         background:
             radial-gradient(
-                circle at 8% 5%,
-                rgba(0, 229, 255, 0.13),
+                circle at 15% 0%,
+                rgba(0, 229, 255, 0.075),
+                transparent 25%
+            ),
+            radial-gradient(
+                circle at 90% 5%,
+                rgba(124, 58, 237, 0.10),
                 transparent 27%
             ),
-            radial-gradient(
-                circle at 92% 8%,
-                rgba(139, 92, 246, 0.16),
-                transparent 30%
-            ),
-            radial-gradient(
-                circle at 50% 100%,
-                rgba(236, 72, 153, 0.07),
-                transparent 32%
-            ),
-            #05080f;
+            #05070c;
 
-        color: #f7f9fc;
+        color: #f8fafc;
     }
 
     .main .block-container {
-        max-width: 1500px;
-        padding-top: 1.8rem;
-        padding-bottom: 3rem;
+        max-width: 1420px;
+        padding-top: 1.2rem;
+        padding-bottom: 2.5rem;
     }
 
-    /* ======================================================
-       REMOVE DEFAULT STREAMLIT UI
-       ====================================================== */
-
-    #MainMenu {
-        visibility: hidden;
-    }
-
+    #MainMenu,
     footer {
         visibility: hidden;
     }
@@ -119,95 +116,98 @@ st.markdown(
         background:
             linear-gradient(
                 180deg,
-                #080d17 0%,
-                #060a12 100%
+                #070a10 0%,
+                #05070c 100%
             );
 
-        border-right: 1px solid rgba(255,255,255,0.07);
+        border-right: 1px solid rgba(255,255,255,0.055);
     }
 
     section[data-testid="stSidebar"] > div {
-        padding-top: 1.5rem;
+        padding-top: 1rem;
     }
 
-    .side-brand {
-        padding: 16px 14px 20px 14px;
+    .brand {
+        padding: 12px 10px 18px 10px;
     }
 
-    .side-logo {
-        width: 44px;
-        height: 44px;
-        border-radius: 13px;
+    .brand-mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
 
         display: flex;
         align-items: center;
         justify-content: center;
 
-        font-size: 21px;
+        background:
+            linear-gradient(
+                135deg,
+                #00cfe8,
+                #6941d9
+            );
+
+        color: white;
+        font-size: 18px;
         font-weight: 900;
 
-        color: #ffffff;
-
-        background:
-            linear-gradient(
-                135deg,
-                #00e5ff,
-                #7c3aed 55%,
-                #ec4899
-            );
-
         box-shadow:
-            0 10px 35px rgba(0,229,255,0.18);
+            0 8px 28px rgba(0,229,255,0.14);
     }
 
-    .side-title {
-        margin-top: 13px;
-        font-size: 21px;
-        font-weight: 850;
+    .brand-name {
+        margin-top: 11px;
         color: #ffffff;
-        letter-spacing: -0.4px;
+        font-size: 18px;
+        font-weight: 850;
+        letter-spacing: -0.5px;
     }
 
-    .side-subtitle {
-        margin-top: 5px;
-        color: #7f8da1;
-        font-size: 11px;
-        line-height: 1.6;
-    }
-
-    .side-status {
-        margin-top: 18px;
-        padding: 12px 13px;
-        border-radius: 12px;
-
-        background:
-            linear-gradient(
-                135deg,
-                rgba(0,229,255,0.07),
-                rgba(124,58,237,0.08)
-            );
-
-        border: 1px solid rgba(0,229,255,0.14);
-    }
-
-    .side-status-label {
-        color: #718096;
-        font-size: 9px;
-        letter-spacing: 1.3px;
-        font-weight: 800;
-    }
-
-    .side-status-value {
-        color: #67e8f9;
-        font-size: 13px;
-        font-weight: 750;
-        margin-top: 5px;
-    }
-
-    .side-mini {
-        color: #64748b;
+    .brand-desc {
+        margin-top: 4px;
+        color: #657286;
         font-size: 10px;
-        margin-top: 14px;
+        line-height: 1.55;
+    }
+
+    .system-card {
+        margin-top: 15px;
+        padding: 11px 12px;
+
+        border-radius: 11px;
+
+        background: rgba(255,255,255,0.025);
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .system-label {
+        color: #58667a;
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+    }
+
+    .system-value {
+        margin-top: 5px;
+        color: #67e8f9;
+        font-size: 11px;
+        font-weight: 750;
+    }
+
+    .system-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #22d3ee;
+        margin-right: 5px;
+        box-shadow: 0 0 10px rgba(34,211,238,0.8);
+    }
+
+    .side-info {
+        margin-top: 13px;
+        color: #505d70;
+        font-size: 9px;
         line-height: 1.6;
     }
 
@@ -215,491 +215,351 @@ st.markdown(
        HERO
        ====================================================== */
 
-    .hero-wrap {
+    .hero {
         position: relative;
         overflow: hidden;
 
-        padding: 48px 48px 44px 48px;
+        padding: 31px 34px 30px 34px;
 
-        border-radius: 28px;
-
-        background:
-            radial-gradient(
-                circle at 80% 10%,
-                rgba(124,58,237,0.24),
-                transparent 35%
-            ),
-            radial-gradient(
-                circle at 15% 80%,
-                rgba(0,229,255,0.13),
-                transparent 35%
-            ),
-            linear-gradient(
-                135deg,
-                rgba(13,22,37,0.97),
-                rgba(8,13,24,0.97)
-            );
-
-        border: 1px solid rgba(255,255,255,0.08);
-
-        box-shadow:
-            0 25px 80px rgba(0,0,0,0.32);
-
-        margin-bottom: 30px;
-    }
-
-    .hero-wrap::after {
-        content: "";
-
-        position: absolute;
-
-        width: 260px;
-        height: 260px;
-
-        right: -100px;
-        bottom: -130px;
-
-        border-radius: 50%;
+        border-radius: 22px;
 
         background:
             linear-gradient(
                 135deg,
-                rgba(0,229,255,0.12),
-                rgba(236,72,153,0.12)
-            );
-
-        filter: blur(20px);
-    }
-
-    .hero-top {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-
-        padding: 7px 12px;
-
-        border-radius: 30px;
-
-        background:
-            linear-gradient(
-                90deg,
-                rgba(0,229,255,0.09),
-                rgba(124,58,237,0.10)
-            );
-
-        border: 1px solid rgba(0,229,255,0.20);
-
-        color: #67e8f9;
-
-        font-size: 10px;
-        font-weight: 850;
-        letter-spacing: 1.5px;
-    }
-
-    .hero-title {
-        margin-top: 17px;
-
-        font-size: clamp(42px, 6vw, 72px);
-
-        line-height: 0.98;
-
-        font-weight: 900;
-
-        letter-spacing: -3px;
-
-        background:
-            linear-gradient(
-                100deg,
-                #ffffff 5%,
-                #dffaff 38%,
-                #8be9ff 62%,
-                #b9a3ff 88%
-            );
-
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .hero-subtitle {
-        margin-top: 17px;
-
-        max-width: 850px;
-
-        color: #9aa8ba;
-
-        font-size: 16px;
-
-        line-height: 1.75;
-    }
-
-    .hero-line {
-        width: 125px;
-        height: 3px;
-
-        margin-top: 25px;
-
-        border-radius: 20px;
-
-        background:
-            linear-gradient(
-                90deg,
-                #00e5ff,
-                #7c3aed,
-                #ec4899
-            );
-    }
-
-    /* ======================================================
-       SECTION TITLES
-       ====================================================== */
-
-    .section-title {
-        color: #f8fafc;
-        font-size: 23px;
-        font-weight: 850;
-        letter-spacing: -0.5px;
-        margin-top: 25px;
-        margin-bottom: 4px;
-    }
-
-    .section-subtitle {
-        color: #718096;
-        font-size: 12px;
-        margin-bottom: 18px;
-    }
-
-    /* ======================================================
-       WORKFLOW CARDS
-       ====================================================== */
-
-    .stage {
-        position: relative;
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(16,25,40,0.98),
-                rgba(8,14,24,0.98)
-            );
-
-        border: 1px solid rgba(255,255,255,0.075);
-
-        border-radius: 18px;
-
-        padding: 21px;
-
-        min-height: 176px;
-
-        margin-bottom: 12px;
-
-        transition:
-            transform 0.2s ease,
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .stage:hover {
-        transform: translateY(-3px);
-
-        border-color:
-            rgba(0,229,255,0.28);
-
-        box-shadow:
-            0 18px 45px rgba(0,0,0,0.22);
-    }
-
-    .stage-number {
-        color: #67e8f9;
-
-        font-size: 10px;
-
-        font-weight: 850;
-
-        letter-spacing: 1.4px;
-    }
-
-    .stage-title {
-        color: #ffffff;
-
-        font-size: 17px;
-
-        font-weight: 800;
-
-        margin-top: 11px;
-
-        letter-spacing: -0.2px;
-    }
-
-    .stage-text {
-        color: #7f8da1;
-
-        font-size: 12px;
-
-        margin-top: 9px;
-
-        line-height: 1.65;
-    }
-
-    .stage-dot {
-        position: absolute;
-
-        top: 20px;
-        right: 20px;
-
-        width: 8px;
-        height: 8px;
-
-        border-radius: 50%;
-
-        background: #00e5ff;
-
-        box-shadow:
-            0 0 15px rgba(0,229,255,0.8);
-    }
-
-    /* ======================================================
-       METRICS
-       ====================================================== */
-
-    .metric-card {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(14,22,35,0.96),
-                rgba(8,13,23,0.96)
+                rgba(13,19,30,0.98),
+                rgba(8,12,20,0.98)
             );
 
         border: 1px solid rgba(255,255,255,0.065);
 
-        border-radius: 16px;
-
-        padding: 18px;
-
-        min-height: 105px;
-
         box-shadow:
-            0 12px 30px rgba(0,0,0,0.12);
+            0 20px 70px rgba(0,0,0,0.25);
+
+        margin-bottom: 18px;
     }
 
-    .metric-label {
-        color: #6f7d90;
+    .hero::after {
+        content: "";
 
-        font-size: 9px;
+        position: absolute;
 
-        font-weight: 800;
+        right: -90px;
+        top: -120px;
 
-        letter-spacing: 1.4px;
-    }
+        width: 280px;
+        height: 280px;
 
-    .metric-value {
-        color: #ffffff;
-
-        font-size: 27px;
-
-        font-weight: 850;
-
-        margin-top: 8px;
-
-        letter-spacing: -0.7px;
-    }
-
-    .metric-accent {
-        color: #67e8f9;
-    }
-
-    /* ======================================================
-       FEATURE CARDS
-       ====================================================== */
-
-    .feature-card {
-        position: relative;
+        border-radius: 50%;
 
         background:
-            linear-gradient(
-                145deg,
-                rgba(14,23,38,0.98),
-                rgba(8,14,24,0.98)
+            radial-gradient(
+                circle,
+                rgba(124,58,237,0.15),
+                transparent 65%
             );
-
-        border: 1px solid rgba(255,255,255,0.07);
-
-        border-radius: 18px;
-
-        padding: 21px;
-
-        min-height: 160px;
-
-        margin-bottom: 14px;
-
-        transition:
-            transform 0.2s ease,
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
     }
 
-    .feature-card:hover {
-        transform: translateY(-4px);
+    .hero-badge {
+        display: inline-flex;
 
-        border-color:
-            rgba(139,92,246,0.32);
+        padding: 6px 10px;
 
-        box-shadow:
-            0 18px 45px rgba(0,0,0,0.22);
-    }
+        border-radius: 20px;
 
-    .feature-icon {
-        width: 38px;
-        height: 38px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 11px;
-
-        background:
-            linear-gradient(
-                135deg,
-                rgba(0,229,255,0.12),
-                rgba(124,58,237,0.15)
-            );
+        background: rgba(0,229,255,0.055);
 
         border: 1px solid rgba(0,229,255,0.13);
 
-        font-size: 18px;
-
-        margin-bottom: 13px;
-    }
-
-    .feature-title {
-        color: #ffffff;
-
-        font-size: 14px;
-
-        font-weight: 800;
-
-        margin-bottom: 7px;
-    }
-
-    .feature-text {
-        color: #7d8b9e;
-
-        font-size: 11px;
-
-        line-height: 1.65;
-    }
-
-    /* ======================================================
-       REPORT AREA
-       ====================================================== */
-
-    .report-header {
-        padding: 20px 22px;
-
-        border-radius: 16px;
-
-        background:
-            linear-gradient(
-                100deg,
-                rgba(0,229,255,0.07),
-                rgba(124,58,237,0.08)
-            );
-
-        border: 1px solid rgba(255,255,255,0.07);
-
-        margin-bottom: 16px;
-    }
-
-    .report-header-title {
-        color: #ffffff;
-
-        font-size: 17px;
-
-        font-weight: 800;
-    }
-
-    .report-header-subtitle {
-        color: #718096;
-
-        font-size: 11px;
-
-        margin-top: 5px;
-    }
-
-    .report-box {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(10,17,29,0.98),
-                rgba(7,12,21,0.98)
-            );
-
-        border: 1px solid rgba(255,255,255,0.07);
-
-        border-radius: 18px;
-
-        padding: 24px;
-
-        line-height: 1.75;
-    }
-
-    /* ======================================================
-       STATUS
-       ====================================================== */
-
-    .status-card {
-        background:
-            rgba(10,18,29,0.96);
-
-        border: 1px solid rgba(0,229,255,0.11);
-
-        border-radius: 12px;
-
-        padding: 13px 9px;
-
-        text-align: center;
-    }
-
-    .status-title {
-        color: #68778b;
-
-        font-size: 8px;
-
-        letter-spacing: 1.1px;
-
-        font-weight: 800;
-    }
-
-    .status-value {
         color: #67e8f9;
 
-        font-size: 11px;
-
-        font-weight: 750;
-
-        margin-top: 6px;
+        font-size: 8px;
+        font-weight: 850;
+        letter-spacing: 1.4px;
     }
 
-    /* ======================================================
-       TABS
-       ====================================================== */
+    .hero-title {
+        margin-top: 13px;
 
-    button[data-baseweb="tab"] {
-        color: #718096 !important;
-        font-weight: 700 !important;
+        font-size: clamp(38px, 5vw, 58px);
+
+        line-height: 1;
+
+        font-weight: 900;
+
+        letter-spacing: -2.8px;
+
+        color: #f8fafc;
     }
 
-    button[data-baseweb="tab"][aria-selected="true"] {
-        color: #67e8f9 !important;
+    .hero-title span {
+        color: #67e8f9;
     }
 
-    div[data-baseweb="tab-highlight"] {
+    .hero-desc {
+        margin-top: 12px;
+
+        max-width: 760px;
+
+        color: #7f8da1;
+
+        font-size: 13px;
+
+        line-height: 1.7;
+    }
+
+    .hero-line {
+        width: 85px;
+        height: 2px;
+
+        margin-top: 19px;
+
+        border-radius: 10px;
+
         background:
             linear-gradient(
                 90deg,
                 #00e5ff,
                 #7c3aed
-            ) !important;
+            );
+    }
+
+    /* ======================================================
+       COMPACT SECTION
+       ====================================================== */
+
+    .section {
+        margin-top: 19px;
+        margin-bottom: 10px;
+    }
+
+    .section-title {
+        color: #f1f5f9;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: -0.25px;
+    }
+
+    .section-desc {
+        color: #5f6d80;
+        font-size: 10px;
+        margin-top: 3px;
+    }
+
+    /* ======================================================
+       WORKFLOW STRIP
+       ====================================================== */
+
+    .flow-strip {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 11px;
+
+        background:
+            rgba(9,14,23,0.95);
+
+        border: 1px solid rgba(255,255,255,0.055);
+
+        border-radius: 14px;
+
+        overflow-x: auto;
+    }
+
+    .flow-item {
+        flex: 1;
+
+        min-width: 135px;
+
+        padding: 10px 11px;
+
+        border-radius: 10px;
+
+        background: rgba(255,255,255,0.022);
+
+        border: 1px solid rgba(255,255,255,0.045);
+    }
+
+    .flow-num {
+        color: #22d3ee;
+        font-size: 8px;
+        font-weight: 850;
+        letter-spacing: 1px;
+    }
+
+    .flow-name {
+        margin-top: 4px;
+        color: #e5e7eb;
+        font-size: 10px;
+        font-weight: 750;
+    }
+
+    .flow-arrow {
+        color: #37465a;
+        font-size: 13px;
+    }
+
+    /* ======================================================
+       CONTROL PANEL
+       ====================================================== */
+
+    .control-panel {
+        padding: 17px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(11,18,29,0.98),
+                rgba(7,11,18,0.98)
+            );
+
+        border: 1px solid rgba(255,255,255,0.06);
+
+        border-radius: 17px;
+    }
+
+    .control-label {
+        color: #64748b;
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+
+    /* ======================================================
+       METRIC CARDS
+       ====================================================== */
+
+    .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 9px;
+        margin-top: 11px;
+    }
+
+    .metric {
+        padding: 13px 14px;
+
+        border-radius: 12px;
+
+        background: rgba(255,255,255,0.022);
+
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .metric-label {
+        color: #59677a;
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .metric-value {
+        margin-top: 5px;
+        color: #e5e7eb;
+        font-size: 20px;
+        font-weight: 850;
+    }
+
+    .metric-value span {
+        color: #67e8f9;
+    }
+
+    /* ======================================================
+       REPORT HEADER
+       ====================================================== */
+
+    .report-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        padding: 13px 15px;
+
+        border-radius: 12px;
+
+        background: rgba(0,229,255,0.025);
+
+        border: 1px solid rgba(0,229,255,0.08);
+
+        margin-top: 15px;
+        margin-bottom: 9px;
+    }
+
+    .report-name {
+        color: #e2e8f0;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .report-id {
+        color: #526176;
+        font-size: 9px;
+        margin-top: 3px;
+    }
+
+    .report-time {
+        color: #64748b;
+        font-size: 9px;
+        text-align: right;
+    }
+
+    /* ======================================================
+       STATUS STRIP
+       ====================================================== */
+
+    .status-strip {
+        display: flex;
+        gap: 6px;
+
+        margin-bottom: 13px;
+    }
+
+    .status {
+        flex: 1;
+
+        padding: 7px;
+
+        border-radius: 8px;
+
+        text-align: center;
+
+        background: rgba(34,197,94,0.035);
+
+        border: 1px solid rgba(34,197,94,0.08);
+    }
+
+    .status-label {
+        color: #526176;
+        font-size: 7px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+    }
+
+    .status-value {
+        color: #86efac;
+        font-size: 8px;
+        font-weight: 800;
+        margin-top: 3px;
+    }
+
+    /* ======================================================
+       REPORT
+       ====================================================== */
+
+    .report-card {
+        padding: 19px;
+
+        border-radius: 15px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(10,16,26,0.98),
+                rgba(7,11,18,0.98)
+            );
+
+        border: 1px solid rgba(255,255,255,0.055);
     }
 
     /* ======================================================
@@ -708,28 +568,26 @@ st.markdown(
 
     textarea,
     input {
-        background: #0a111c !important;
+        background: #090f18 !important;
         color: #f8fafc !important;
 
-        border: 1px solid #1d2b3c !important;
+        border: 1px solid #1a2737 !important;
 
-        border-radius: 12px !important;
+        border-radius: 10px !important;
     }
 
     textarea:focus,
     input:focus {
-        border-color: #00e5ff !important;
+        border-color: #0891b2 !important;
 
         box-shadow:
-            0 0 0 1px rgba(0,229,255,0.18) !important;
+            0 0 0 1px rgba(0,229,255,0.12) !important;
     }
 
     div[data-baseweb="select"] > div {
-        background: #0a111c !important;
-
-        border-color: #1d2b3c !important;
-
-        border-radius: 11px !important;
+        background: #090f18 !important;
+        border-color: #1a2737 !important;
+        border-radius: 10px !important;
     }
 
     /* ======================================================
@@ -737,48 +595,58 @@ st.markdown(
        ====================================================== */
 
     div.stButton > button {
-        border-radius: 12px;
+        min-height: 44px;
 
-        min-height: 46px;
+        border-radius: 10px;
 
-        font-weight: 800;
-
-        border: 1px solid rgba(0,229,255,0.18);
+        border: 1px solid rgba(0,229,255,0.16);
 
         background:
             linear-gradient(
                 100deg,
-                #00a8c7,
-                #6841d9
+                #0891b2,
+                #5b3bbf
             );
 
         color: white;
 
-        box-shadow:
-            0 10px 30px rgba(0,0,0,0.20);
+        font-weight: 800;
 
-        transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+        box-shadow:
+            0 9px 25px rgba(0,0,0,0.20);
     }
 
     div.stButton > button:hover {
-        transform: translateY(-2px);
+        border-color: rgba(103,232,249,0.35);
 
         box-shadow:
-            0 14px 38px rgba(0,229,255,0.16);
+            0 12px 30px rgba(0,229,255,0.10);
     }
 
     div[data-testid="stDownloadButton"] button {
-        border-radius: 11px;
-
-        background: #0c1420;
-
-        border: 1px solid #1c2b3d;
-
-        color: #dce5ef;
-
+        border-radius: 9px;
+        background: #0b121d;
+        border: 1px solid #1a2939;
+        color: #dbe5ef;
         font-weight: 700;
+    }
+
+    /* ======================================================
+       TABS
+       ====================================================== */
+
+    button[data-baseweb="tab"] {
+        color: #637187 !important;
+        font-size: 10px !important;
+        font-weight: 750 !important;
+    }
+
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #67e8f9 !important;
+    }
+
+    div[data-baseweb="tab-highlight"] {
+        background: #22d3ee !important;
     }
 
     /* ======================================================
@@ -786,19 +654,9 @@ st.markdown(
        ====================================================== */
 
     div[data-testid="stExpander"] {
-        background: #09111b;
-
-        border: 1px solid #1a2939;
-
-        border-radius: 13px;
-    }
-
-    /* ======================================================
-       DIVIDER
-       ====================================================== */
-
-    hr {
-        border-color: rgba(255,255,255,0.06) !important;
+        background: #080e17;
+        border: 1px solid #182535;
+        border-radius: 11px;
     }
 
     /* ======================================================
@@ -807,12 +665,36 @@ st.markdown(
 
     .footer {
         text-align: center;
+        color: #414d5f;
+        font-size: 9px;
+        padding: 15px;
+    }
 
-        color: #566477;
+    /* ======================================================
+       MOBILE
+       ====================================================== */
 
-        font-size: 10px;
+    @media (max-width: 900px) {
 
-        padding: 18px;
+        .hero {
+            padding: 25px;
+        }
+
+        .hero-title {
+            font-size: 40px;
+        }
+
+        .metrics {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .status-strip {
+            flex-wrap: wrap;
+        }
+
+        .status {
+            min-width: 29%;
+        }
     }
 
     </style>
@@ -822,14 +704,10 @@ st.markdown(
 
 
 # ============================================================
-# HELPER FUNCTIONS
+# HELPERS
 # ============================================================
 
 def clean_markdown(text):
-    """
-    Remove markdown formatting for simple PDF/DOCX content.
-    """
-
     if not text:
         return ""
 
@@ -841,47 +719,34 @@ def clean_markdown(text):
 
 
 def split_report_sections(report_text):
-    """
-    Split AI report into markdown-style sections.
-    """
 
     sections = {}
 
-    current_title = "Executive Summary"
+    current_title = "General"
     current_content = []
 
     for line in report_text.splitlines():
 
-        line = line.strip()
+        stripped = line.strip()
 
-        if line.startswith("## "):
+        if stripped.startswith("## "):
 
             if current_content:
-
                 sections[current_title] = "\n".join(
                     current_content
                 ).strip()
 
-            current_title = line.replace(
-                "## ",
-                ""
-            ).strip()
-
+            current_title = stripped[3:].strip()
             current_content = []
 
-        elif line.startswith("# "):
+        elif stripped.startswith("# "):
 
             if current_content:
-
                 sections[current_title] = "\n".join(
                     current_content
                 ).strip()
 
-            current_title = line.replace(
-                "# ",
-                ""
-            ).strip()
-
+            current_title = stripped[2:].strip()
             current_content = []
 
         else:
@@ -898,9 +763,6 @@ def split_report_sections(report_text):
 
 
 def count_bullets(text):
-    """
-    Count bullet-style action/risk items.
-    """
 
     if not text:
         return 0
@@ -916,11 +778,25 @@ def count_bullets(text):
     )
 
 
+def extract_qa_scores(text):
+
+    if not text:
+        return []
+
+    pattern = r"(Completeness|Actionability|Risk Coverage|KPI Coverage|Clarity).*?(\d{1,2})\s*/\s*10"
+
+    return re.findall(
+        pattern,
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+
 # ============================================================
-# PDF GENERATION
+# PDF
 # ============================================================
 
-def create_pdf(report_text):
+def create_pdf(report_text, report_id):
 
     buffer = io.BytesIO()
 
@@ -943,15 +819,15 @@ def create_pdf(report_text):
     title_style.leading = 25
 
     heading_style = styles["Heading2"]
-    heading_style.fontSize = 14
-    heading_style.leading = 18
+    heading_style.fontSize = 13
+    heading_style.leading = 17
     heading_style.spaceBefore = 12
     heading_style.spaceAfter = 7
 
     body_style = styles["BodyText"]
     body_style.fontSize = 10
     body_style.leading = 15
-    body_style.spaceAfter = 7
+    body_style.spaceAfter = 6
 
     story = []
 
@@ -964,56 +840,45 @@ def create_pdf(report_text):
 
     story.append(
         Paragraph(
-            "Business Operations Intelligence Report",
+            f"Business Operations Intelligence Report · {report_id}",
             heading_style,
         )
     )
 
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 8))
 
-    for line in report_text.splitlines():
+    for raw_line in report_text.splitlines():
 
-        line = clean_markdown(line)
+        line = clean_markdown(raw_line)
 
         if not line:
 
-            story.append(Spacer(1, 6))
+            story.append(Spacer(1, 5))
             continue
 
         if line.startswith("## "):
 
-            heading = line.replace(
-                "## ",
-                ""
-            ).strip()
-
             story.append(
                 Paragraph(
-                    heading,
+                    line[3:].strip(),
                     heading_style,
                 )
             )
 
         elif line.startswith("# "):
 
-            heading = line.replace(
-                "# ",
-                ""
-            ).strip()
-
             story.append(
                 Paragraph(
-                    heading,
+                    line[2:].strip(),
                     heading_style,
                 )
             )
 
         elif line.startswith("- "):
 
-            bullet = line[2:].strip()
-
-            safe_bullet = (
-                bullet
+            bullet = (
+                line[2:]
+                .strip()
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
@@ -1021,7 +886,7 @@ def create_pdf(report_text):
 
             story.append(
                 Paragraph(
-                    "• " + safe_bullet,
+                    "• " + bullet,
                     body_style,
                 )
             )
@@ -1050,10 +915,10 @@ def create_pdf(report_text):
 
 
 # ============================================================
-# DOCX GENERATION
+# DOCX
 # ============================================================
 
-def create_docx(report_text):
+def create_docx(report_text, report_id):
 
     document = Document()
 
@@ -1063,7 +928,7 @@ def create_docx(report_text):
     )
 
     document.add_paragraph(
-        "Business Operations Intelligence Report"
+        f"Business Operations Intelligence Report · {report_id}"
     )
 
     document.add_paragraph("")
@@ -1079,38 +944,28 @@ def create_docx(report_text):
 
         if line.startswith("## "):
 
-            heading = line.replace(
-                "## ",
-                ""
-            ).strip()
-
             document.add_heading(
-                heading,
+                line[3:].strip(),
                 level=1,
             )
 
         elif line.startswith("# "):
 
-            heading = line.replace(
-                "# ",
-                ""
-            ).strip()
-
             document.add_heading(
-                heading,
+                line[2:].strip(),
                 level=1,
             )
 
         elif line.startswith("- "):
-
-            bullet = line[2:].strip()
 
             paragraph = document.add_paragraph(
                 style="List Bullet"
             )
 
             paragraph.add_run(
-                clean_markdown(bullet)
+                clean_markdown(
+                    line[2:].strip()
+                )
             )
 
         else:
@@ -1138,9 +993,9 @@ def create_docx(report_text):
 
 class BusinessOpsFlow(Flow):
 
-    # ========================================================
+    # --------------------------------------------------------
     # 01 — INTAKE
-    # ========================================================
+    # --------------------------------------------------------
 
     @start()
     def intake(self):
@@ -1149,31 +1004,44 @@ class BusinessOpsFlow(Flow):
             "request": self.state.get(
                 "request",
                 ""
-            ).strip()
+            ).strip(),
+
+            "department": self.state.get(
+                "department",
+                "All Departments"
+            ),
+
+            "priority": self.state.get(
+                "priority",
+                "Medium"
+            ),
+
+            "timeline": self.state.get(
+                "timeline",
+                "90 Days"
+            ),
         }
 
-    # ========================================================
+    # --------------------------------------------------------
     # 02 — BUSINESS ANALYSIS
-    # ========================================================
+    # --------------------------------------------------------
 
     @listen(intake)
     def business_analysis(self, data):
 
-        request = data["request"]
-
         return {
-            "request": request,
+            **data,
 
             "analysis": (
                 "Identify the business objective, stakeholders, "
-                "current situation, constraints, business impact, "
+                "current situation, constraints, business impact "
                 "and expected outcome."
             ),
         }
 
-    # ========================================================
-    # 03 — OPERATIONS PLANNING
-    # ========================================================
+    # --------------------------------------------------------
+    # 03 — OPERATIONS
+    # --------------------------------------------------------
 
     @listen(business_analysis)
     def operations_planning(self, data):
@@ -1183,14 +1051,14 @@ class BusinessOpsFlow(Flow):
 
             "operations": (
                 "Design practical operational steps, responsible "
-                "roles, dependencies, resources, department impact, "
+                "roles, dependencies, resources, department impact "
                 "and measurable outcomes."
             ),
         }
 
-    # ========================================================
-    # 04 — RISK MANAGEMENT
-    # ========================================================
+    # --------------------------------------------------------
+    # 04 — RISK
+    # --------------------------------------------------------
 
     @listen(operations_planning)
     def risk_management(self, data):
@@ -1200,14 +1068,14 @@ class BusinessOpsFlow(Flow):
 
             "risk": (
                 "Identify operational, people, technology, "
-                "communication, timeline, implementation risks, "
-                "and appropriate mitigation strategies."
+                "communication, timeline and implementation risks "
+                "with practical mitigation."
             ),
         }
 
-    # ========================================================
-    # 05 — ACTION PLANNING
-    # ========================================================
+    # --------------------------------------------------------
+    # 05 — ACTIONS
+    # --------------------------------------------------------
 
     @listen(risk_management)
     def action_planning(self, data):
@@ -1217,14 +1085,13 @@ class BusinessOpsFlow(Flow):
 
             "actions": (
                 "Create prioritized next actions, ownership, "
-                "dependencies, implementation phases, KPIs, "
-                "and short-term and long-term roadmap items."
+                "dependencies, implementation phases and KPIs."
             ),
         }
 
-    # ========================================================
-    # 06 — QUALITY CONTROL
-    # ========================================================
+    # --------------------------------------------------------
+    # 06 — QA
+    # --------------------------------------------------------
 
     @listen(action_planning)
     def quality_control(self, data):
@@ -1234,33 +1101,25 @@ class BusinessOpsFlow(Flow):
 
             "qa": (
                 "Check whether the proposed workflow is practical, "
-                "complete, consistent, actionable, measurable, "
-                "and clear about missing information and assumptions."
+                "complete, consistent, actionable, measurable and "
+                "clear about assumptions."
             ),
         }
 
-    # ========================================================
+    # --------------------------------------------------------
     # FINAL GROQ GENERATION
-    # ========================================================
+    # --------------------------------------------------------
 
     @listen(quality_control)
     def final_report(self, data):
 
         if not data["request"]:
 
-            return (
-                "Please enter a business request."
-            )
-
-        # ----------------------------------------------------
-        # GROQ API KEY
-        # ----------------------------------------------------
+            return "Please enter a business request."
 
         try:
 
-            api_key = st.secrets[
-                "GROQ_API_KEY"
-            ]
+            api_key = st.secrets["GROQ_API_KEY"]
 
         except Exception:
 
@@ -1270,142 +1129,126 @@ class BusinessOpsFlow(Flow):
 
             return (
                 "GROQ_API_KEY is missing.\n\n"
-                "Please add your Groq API key in:\n"
-                "Streamlit Cloud → Manage App → Settings → Secrets"
+                "Add your Groq API key in "
+                "Streamlit Cloud → Manage App → Settings → Secrets."
             )
-
-        # ----------------------------------------------------
-        # GROQ CLIENT
-        # ----------------------------------------------------
 
         client = Groq(
             api_key=api_key
         )
 
-        # ----------------------------------------------------
-        # PROFESSIONAL BUSINESSOPS PROMPT
-        # ----------------------------------------------------
-
         prompt = f"""
 You are BusinessOps AI, a professional autonomous
 business process intelligence assistant.
 
-Your job is to transform a business problem into
-a practical, structured operational plan.
+Transform the business request into a practical,
+structured operational plan.
 
 BUSINESS REQUEST:
-
 {data["request"][:2200]}
 
-INTERNAL WORKFLOW:
+BUSINESS CONTEXT:
+Department: {data["department"]}
+Priority: {data["priority"]}
+Implementation Horizon: {data["timeline"]}
 
-BUSINESS ANALYSIS:
+INTERNAL BUSINESS ANALYSIS:
 {data["analysis"]}
 
-OPERATIONS PLANNING:
+INTERNAL OPERATIONS PLAN:
 {data["operations"]}
 
-RISK MANAGEMENT:
+INTERNAL RISK REVIEW:
 {data["risk"]}
 
-ACTION PLANNING:
+INTERNAL ACTION PLAN:
 {data["actions"]}
 
-QUALITY CONTROL:
+INTERNAL QA REVIEW:
 {data["qa"]}
-
 
 Generate a professional Business Operations Intelligence Report.
 
-Use EXACTLY these sections:
+Use EXACTLY these headings:
 
 ## Executive Summary
 
 Give a concise overview of the problem, objective,
-expected business impact, and recommended direction.
+business impact and recommended direction.
 
 ## Business Analysis
 
-Identify:
+Cover:
 - Business objective
-- Key stakeholders
+- Stakeholders
 - Current challenge
 - Constraints
 - Expected outcome
 
 ## Department Impact
 
-Identify relevant departments or business functions
-and explain their expected responsibilities or impact.
+Identify relevant departments/functions and their
+responsibilities or impact.
 
-Do not invent departments if they are not relevant.
+Do not invent irrelevant departments.
 
 ## Information Gaps
 
-Identify important information that is missing from
-the request.
+Identify missing information that could affect
+implementation.
 
-If there are no critical gaps, write:
+If none are critical, state:
 "No critical information gaps identified."
-
-Do not invent facts.
 
 ## Recommended Workflow
 
-Provide a clear step-by-step operational process.
-
-Use numbered steps where useful.
+Give a practical step-by-step operational process.
 
 ## Priority Matrix
 
-Classify important actions using:
+Classify key actions as:
 - Critical
 - High
 - Medium
 - Low
 
-Explain why each important priority matters.
+Briefly explain the reasoning.
 
 ## Risk Register
 
-For the most important risks provide:
+For important risks include:
 - Risk
 - Impact
 - Likelihood
 - Mitigation
 - Suggested Owner
 
-Do not create unrealistic risks.
+Do not invent unrealistic risks.
 
 ## Priority Actions
 
-Provide practical next actions.
-
-For each action include:
+For each important action include:
 - Action
-- Suggested owner
+- Suggested Owner
 - Priority
 - Dependency when relevant
 
 ## 30/60/90 Day Roadmap
 
-Organize implementation into:
+Organize appropriate implementation phases into:
 - First 30 days
 - Days 31–60
 - Days 61–90
 
-Only include phases appropriate to the business request.
-
 ## KPIs / Success Metrics
 
-Provide measurable indicators that could be used
-to evaluate whether the process is improving.
+Provide measurable indicators.
 
 Do not invent current performance numbers.
 
 ## Process Canvas
 
-Summarize:
+Use this structure:
 
 Problem:
 Objective:
@@ -1416,35 +1259,27 @@ Key Outcome:
 
 ## QA Audit
 
-Provide an AI quality assessment covering:
-
+Assess:
 - Completeness
 - Actionability
 - Risk Coverage
 - KPI Coverage
 - Clarity
 
-Use a score from 1–10 for each dimension.
+Use 1–10 scores with one short reason for each.
 
-Give a short reason for each score.
+Also list remaining assumptions.
 
-Also identify any remaining assumptions.
+RULES:
 
-GENERAL REQUIREMENTS:
-
-- Be professional and concise.
-- Be specific and practical.
-- Do not invent company-specific facts.
-- Clearly distinguish assumptions from known information.
-- Do not claim actions have actually been completed.
-- Recommendations should be actionable.
-- Avoid unnecessary repetition.
-- Keep the complete report approximately 700–850 words maximum.
+- Professional business language.
+- Concise and practical.
+- No invented company facts.
+- Clearly identify assumptions.
+- Never claim that an action has already been completed.
+- Avoid repetition.
+- Keep the report concise.
 """
-
-        # ----------------------------------------------------
-        # GROQ REQUEST
-        # ----------------------------------------------------
 
         try:
 
@@ -1456,10 +1291,10 @@ GENERAL REQUIREMENTS:
                     {
                         "role": "system",
                         "content": (
-                            "You are BusinessOps AI, a professional "
-                            "business operations intelligence system. "
-                            "Return a structured Markdown report using "
-                            "the exact requested section headings."
+                            "You are BusinessOps AI. "
+                            "Generate a professional structured "
+                            "Markdown business operations report "
+                            "using the exact headings requested."
                         ),
                     },
                     {
@@ -1490,10 +1325,6 @@ GENERAL REQUIREMENTS:
                 )
 
             return result.strip()
-
-        # ----------------------------------------------------
-        # ERROR HANDLING
-        # ----------------------------------------------------
 
         except Exception as e:
 
@@ -1556,8 +1387,8 @@ GENERAL REQUIREMENTS:
 
                     return (
                         "Groq rate limit is temporarily active.\n\n"
-                        "Please wait a few seconds and run the "
-                        "business analysis again.\n\n"
+                        "Please wait a few seconds and run "
+                        "the analysis again.\n\n"
                         f"Technical detail: {retry_error}"
                     )
 
@@ -1573,41 +1404,44 @@ GENERAL REQUIREMENTS:
 
 with st.sidebar:
 
-    st.html(
+    st.markdown(
         """
-        <div class="side-brand">
+        <div class="brand">
 
-            <div class="side-logo">
+            <div class="brand-mark">
                 ⚡
             </div>
 
-            <div class="side-title">
+            <div class="brand-name">
                 BusinessOps AI
             </div>
 
-            <div class="side-subtitle">
-                Autonomous Business Process Intelligence
+            <div class="brand-desc">
+                Autonomous business process intelligence
+                for operational decision support.
             </div>
 
-            <div class="side-status">
+            <div class="system-card">
 
-                <div class="side-status-label">
-                    SYSTEM STATUS
+                <div class="system-label">
+                    SYSTEM
                 </div>
 
-                <div class="side-status-value">
-                    ● AI ENGINE READY
+                <div class="system-value">
+                    <span class="system-dot"></span>
+                    AI ENGINE READY
                 </div>
 
             </div>
 
-            <div class="side-mini">
-                CrewAI Flow · Groq Intelligence ·
-                Streamlit Cloud
+            <div class="side-info">
+                CrewAI Flow · Groq · Streamlit Cloud<br>
+                Single-generation architecture
             </div>
 
         </div>
-        """
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -1615,258 +1449,199 @@ with st.sidebar:
 # HERO
 # ============================================================
 
-st.html(
+st.markdown(
     """
-    <div class="hero-wrap">
+    <div class="hero">
 
-        <div class="hero-top">
-            ⚡ AUTONOMOUS BUSINESS INTELLIGENCE
+        <div class="hero-badge">
+            AUTONOMOUS BUSINESS INTELLIGENCE
         </div>
 
         <div class="hero-title">
-            BusinessOps AI
+            BusinessOps <span>AI</span>
         </div>
 
-        <div class="hero-subtitle">
-            Transform complex business requests into
-            structured operational plans, risk controls,
-            priority actions, implementation roadmaps,
-            and measurable business outcomes.
+        <div class="hero-desc">
+            Turn an unstructured business problem into a
+            practical workflow, risk register, priority actions,
+            roadmap and measurable KPIs.
         </div>
 
         <div class="hero-line"></div>
 
     </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# WORKFLOW
+# ============================================================
+
+st.markdown(
     """
-)
-
-
-# ============================================================
-# WORKFLOW STAGES
-# ============================================================
-
-st.markdown(
-    '<div class="section-title">Agentic Workflow</div>',
+    <div class="section">
+        <div class="section-title">Workflow</div>
+        <div class="section-desc">
+            One coordinated CrewAI process from intake to quality audit.
+        </div>
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
-st.markdown(
-    '<div class="section-subtitle">Six coordinated intelligence stages powering every business analysis.</div>',
-    unsafe_allow_html=True,
-)
+workflow_html = """
+<div class="flow-strip">
+"""
 
-
-stages = [
-
-    (
-        "01",
-        "Business Analyst",
-        "Understands the business problem, objective, stakeholders, constraints and expected outcome.",
-    ),
-
-    (
-        "02",
-        "Operations Planner",
-        "Converts the problem into an executable operational workflow.",
-    ),
-
-    (
-        "03",
-        "Risk Manager",
-        "Identifies implementation risks and practical mitigation strategies.",
-    ),
-
-    (
-        "04",
-        "Action Planner",
-        "Converts recommendations into prioritized next actions and ownership.",
-    ),
-
-    (
-        "05",
-        "KPI Designer",
-        "Defines measurable outcomes, KPIs and implementation roadmap.",
-    ),
-
-    (
-        "06",
-        "QA Auditor",
-        "Performs final completeness, consistency and quality review.",
-    ),
+workflow_items = [
+    ("01", "Intake"),
+    ("02", "Analysis"),
+    ("03", "Operations"),
+    ("04", "Risk"),
+    ("05", "Actions"),
+    ("06", "QA"),
 ]
 
+for index, (number, name) in enumerate(workflow_items):
 
-cols = st.columns(3)
-
-
-for i, (
-    number,
-    title,
-    description,
-) in enumerate(stages):
-
-    with cols[i % 3]:
-
-        st.html(
-            f"""
-            <div class="stage">
-
-                <div class="stage-dot"></div>
-
-                <div class="stage-number">
-                    {number} / 06
-                </div>
-
-                <div class="stage-title">
-                    {title}
-                </div>
-
-                <div class="stage-text">
-                    {description}
-                </div>
-
-            </div>
-            """
-        )
-
-
-# ============================================================
-# METRICS
-# ============================================================
-
-st.write("")
-
-m1, m2, m3, m4 = st.columns(4)
-
-
-with m1:
-
-    st.html(
-        """
-        <div class="metric-card">
-
-            <div class="metric-label">
-                WORKFLOW
-            </div>
-
-            <div class="metric-value">
-                <span class="metric-accent">06</span>
-                stages
-            </div>
-
+    workflow_html += f"""
+        <div class="flow-item">
+            <div class="flow-num">{number}</div>
+            <div class="flow-name">{name}</div>
         </div>
+    """
+
+    if index < len(workflow_items) - 1:
+
+        workflow_html += """
+            <div class="flow-arrow">›</div>
         """
-    )
 
-
-with m2:
-
-    st.html(
-        """
-        <div class="metric-card">
-
-            <div class="metric-label">
-                AI GENERATION
-            </div>
-
-            <div class="metric-value">
-                <span class="metric-accent">01</span>
-                call
-            </div>
-
-        </div>
-        """
-    )
-
-
-with m3:
-
-    st.html(
-        """
-        <div class="metric-card">
-
-            <div class="metric-label">
-                INTELLIGENCE
-            </div>
-
-            <div class="metric-value">
-                <span class="metric-accent">08+</span>
-                modules
-            </div>
-
-        </div>
-        """
-    )
-
-
-with m4:
-
-    st.html(
-        """
-        <div class="metric-card">
-
-            <div class="metric-label">
-                DEPLOYMENT
-            </div>
-
-            <div class="metric-value">
-                <span class="metric-accent">CLOUD</span>
-            </div>
-
-        </div>
-        """
-    )
-
-
-# ============================================================
-# BUSINESS REQUEST
-# ============================================================
-
-st.write("")
+workflow_html += "</div>"
 
 st.markdown(
-    '<div class="section-title">Business Request</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    '<div class="section-subtitle">Describe a real operational challenge and let the intelligence workflow structure it.</div>',
+    workflow_html,
     unsafe_allow_html=True,
 )
 
 
-sample = st.selectbox(
+# ============================================================
+# BUSINESS REQUEST SECTION
+# ============================================================
 
-    "Quick scenario",
-
-    [
-        "Custom request",
-        "Employee Onboarding",
-        "Software Rollout",
-        "Office Relocation",
-        "Customer Support Improvement",
-        "Project Management Improvement",
-        "Vendor Management",
-    ],
+st.markdown(
+    """
+    <div class="section">
+        <div class="section-title">Analysis Workspace</div>
+        <div class="section-desc">
+            Configure the context, then describe the business challenge.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 
 # ============================================================
-# SAMPLE SCENARIOS
+# CONTROL PANEL
+# ============================================================
+
+st.markdown(
+    '<div class="control-panel">',
+    unsafe_allow_html=True,
+)
+
+c1, c2, c3 = st.columns(3)
+
+
+with c1:
+
+    st.markdown(
+        '<div class="control-label">SCENARIO</div>',
+        unsafe_allow_html=True,
+    )
+
+    sample = st.selectbox(
+        "Scenario",
+        [
+            "Custom request",
+            "Employee Onboarding",
+            "Software Rollout",
+            "Office Relocation",
+            "Customer Support Improvement",
+            "Project Management Improvement",
+            "Vendor Management",
+        ],
+        label_visibility="collapsed",
+    )
+
+
+with c2:
+
+    st.markdown(
+        '<div class="control-label">BUSINESS AREA</div>',
+        unsafe_allow_html=True,
+    )
+
+    department = st.selectbox(
+        "Business Area",
+        [
+            "All Departments",
+            "Operations",
+            "Human Resources",
+            "Information Technology",
+            "Finance",
+            "Sales & Marketing",
+            "Customer Support",
+            "Project Management",
+            "Procurement",
+        ],
+        label_visibility="collapsed",
+    )
+
+
+with c3:
+
+    st.markdown(
+        '<div class="control-label">PRIORITY</div>',
+        unsafe_allow_html=True,
+    )
+
+    priority = st.selectbox(
+        "Priority",
+        [
+            "Critical",
+            "High",
+            "Medium",
+            "Low",
+        ],
+        index=2,
+        label_visibility="collapsed",
+    )
+
+
+st.markdown(
+    "</div>",
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# SCENARIOS
 # ============================================================
 
 default_text = ""
 
-
 if sample == "Employee Onboarding":
 
     default_text = (
-        "Our company is growing quickly and new employees are "
-        "having difficulty completing HR, IT, security and "
-        "department onboarding. Design a better onboarding "
+        "Our company is growing quickly and new employees "
+        "are having difficulty completing HR, IT, security "
+        "and department onboarding. Design a better onboarding "
         "process with clear ownership, risk controls and KPIs."
     )
-
 
 elif sample == "Software Rollout":
 
@@ -1876,7 +1651,6 @@ elif sample == "Software Rollout":
         "migration support and a controlled rollout plan."
     )
 
-
 elif sample == "Office Relocation":
 
     default_text = (
@@ -1884,7 +1658,6 @@ elif sample == "Office Relocation":
         "a plan covering employees, IT infrastructure, vendors, "
         "communication, facilities and business continuity."
     )
-
 
 elif sample == "Customer Support Improvement":
 
@@ -1894,38 +1667,48 @@ elif sample == "Customer Support Improvement":
         "Create an improved support operations workflow."
     )
 
-
 elif sample == "Project Management Improvement":
 
     default_text = (
-        "Our software projects frequently miss deadlines because "
-        "requirements, ownership and dependencies are unclear. "
-        "Design an improved project management process."
+        "Our software projects frequently miss deadlines "
+        "because requirements, ownership and dependencies "
+        "are unclear. Design an improved project management process."
     )
-
 
 elif sample == "Vendor Management":
 
     default_text = (
         "Our company works with multiple external vendors and "
         "has difficulty tracking performance, deadlines, costs "
-        "and responsibilities. Create an improved vendor management "
-        "process with risks and KPIs."
+        "and responsibilities. Create an improved vendor "
+        "management process with risks and KPIs."
     )
 
 
 # ============================================================
-# REQUEST INPUT
+# TIMELINE
+# ============================================================
+
+timeline = st.selectbox(
+    "Implementation horizon",
+    [
+        "Immediate",
+        "30 Days",
+        "60 Days",
+        "90 Days",
+    ],
+    index=3,
+)
+
+
+# ============================================================
+# REQUEST
 # ============================================================
 
 request = st.text_area(
-
-    "Describe your business problem or process",
-
+    "Business challenge",
     value=default_text,
-
-    height=180,
-
+    height=145,
     placeholder=(
         "Example: Our company wants to improve employee "
         "onboarding across HR, IT and department teams..."
@@ -1934,31 +1717,56 @@ request = st.text_area(
 
 
 # ============================================================
-# RUN BUSINESSOPS AI
+# RUN
 # ============================================================
 
-if st.button(
+run_col1, run_col2 = st.columns(
+    [4, 1]
+)
 
-    "⚡ RUN BUSINESSOPS AI",
+with run_col1:
 
-    type="primary",
+    run_clicked = st.button(
+        "⚡ Analyze Business Process",
+        type="primary",
+        use_container_width=True,
+    )
 
-    use_container_width=True,
+with run_col2:
 
-):
+    if st.session_state.get(
+        "businessops_result"
+    ):
+
+        if st.button(
+            "Clear",
+            use_container_width=True,
+        ):
+
+            st.session_state["businessops_result"] = ""
+            st.session_state["businessops_request"] = ""
+            st.session_state["businessops_report_id"] = ""
+            st.session_state["businessops_timestamp"] = ""
+
+            st.rerun()
+
+
+# ============================================================
+# EXECUTE
+# ============================================================
+
+if run_clicked:
 
     if not request.strip():
 
         st.warning(
-            "Please enter a business request first."
+            "Please describe a business challenge first."
         )
 
     else:
 
         with st.spinner(
-            "BusinessOps AI is analyzing the request, "
-            "planning operations, evaluating risks and "
-            "generating the intelligence report..."
+            "BusinessOps AI is running the workflow..."
         ):
 
             try:
@@ -1966,6 +1774,9 @@ if st.button(
                 flow = BusinessOpsFlow()
 
                 flow.state["request"] = request
+                flow.state["department"] = department
+                flow.state["priority"] = priority
+                flow.state["timeline"] = timeline
 
                 result = flow.kickoff()
 
@@ -1976,537 +1787,503 @@ if st.button(
                     f"{flow_error}"
                 )
 
+        now = datetime.now()
+
+        report_id = (
+            "BO-"
+            + now.strftime("%Y%m%d-%H%M%S")
+        )
 
         st.session_state["businessops_result"] = result
         st.session_state["businessops_request"] = request
+        st.session_state["businessops_report_id"] = report_id
+        st.session_state["businessops_timestamp"] = (
+            now.strftime("%d %b %Y · %I:%M %p")
+        )
+
+        st.rerun()
 
 
 # ============================================================
-# SHOW REPORT IF AVAILABLE
+# RESULT
 # ============================================================
 
-if "businessops_result" in st.session_state:
+result = st.session_state.get(
+    "businessops_result",
+    "",
+)
 
-    result = st.session_state[
-        "businessops_result"
-    ]
+
+if result:
+
+    report_id = st.session_state.get(
+        "businessops_report_id",
+        "BusinessOps Report",
+    )
+
+    report_time = st.session_state.get(
+        "businessops_timestamp",
+        "",
+    )
 
     request_used = st.session_state.get(
         "businessops_request",
-        ""
+        "",
     )
-
-
-    # ========================================================
-    # REPORT HEADER
-    # ========================================================
-
-    st.write("")
-
-    st.html(
-        """
-        <div class="report-header">
-
-            <div class="report-header-title">
-                Business Intelligence Report
-            </div>
-
-            <div class="report-header-subtitle">
-                AI-generated operational analysis, risk intelligence,
-                action planning and implementation guidance.
-            </div>
-
-        </div>
-        """
-    )
-
-
-    # ========================================================
-    # EXECUTION STATUS
-    # ========================================================
-
-    s1, s2, s3, s4, s5, s6 = st.columns(6)
-
-    statuses = [
-        ("INTAKE", "COMPLETED"),
-        ("ANALYSIS", "COMPLETED"),
-        ("OPERATIONS", "COMPLETED"),
-        ("RISK", "COMPLETED"),
-        ("ACTIONS", "COMPLETED"),
-        ("QA", "COMPLETED"),
-    ]
-
-    status_cols = [
-        s1,
-        s2,
-        s3,
-        s4,
-        s5,
-        s6,
-    ]
-
-    for col, (
-        title,
-        status,
-    ) in zip(
-        status_cols,
-        statuses
-    ):
-
-        with col:
-
-            st.html(
-                f"""
-                <div class="status-card">
-
-                    <div class="status-title">
-                        {title}
-                    </div>
-
-                    <div class="status-value">
-                        ✓ {status}
-                    </div>
-
-                </div>
-                """
-            )
-
-
-    # ========================================================
-    # PARSE REPORT
-    # ========================================================
 
     sections = split_report_sections(
         result
     )
 
+    # ========================================================
+    # REPORT META
+    # ========================================================
+
+    st.markdown(
+        f"""
+        <div class="report-meta">
+
+            <div>
+                <div class="report-name">
+                    Business Intelligence Report
+                </div>
+
+                <div class="report-id">
+                    {report_id} · CrewAI workflow
+                </div>
+            </div>
+
+            <div class="report-time">
+                {report_time}<br>
+                01 AI generation
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # ========================================================
-    # DYNAMIC METRICS
+    # STATUS
+    # ========================================================
+
+    statuses = [
+        "INTAKE",
+        "ANALYSIS",
+        "OPERATIONS",
+        "RISK",
+        "ACTIONS",
+        "QA",
+    ]
+
+    status_html = """
+    <div class="status-strip">
+    """
+
+    for status in statuses:
+
+        status_html += f"""
+            <div class="status">
+                <div class="status-label">
+                    {status}
+                </div>
+                <div class="status-value">
+                    ✓ READY
+                </div>
+            </div>
+        """
+
+    status_html += "</div>"
+
+    st.markdown(
+        status_html,
+        unsafe_allow_html=True,
+    )
+
+    # ========================================================
+    # REPORT METRICS
     # ========================================================
 
     risk_count = count_bullets(
         sections.get(
             "Risk Register",
-            ""
+            "",
         )
     )
 
     action_count = count_bullets(
         sections.get(
             "Priority Actions",
-            ""
+            "",
         )
     )
 
     gap_count = count_bullets(
         sections.get(
             "Information Gaps",
-            ""
+            "",
         )
     )
 
+    section_count = len(
+        sections
+    )
 
-    # ========================================================
-    # REPORT METRICS
-    # ========================================================
+    st.markdown(
+        f"""
+        <div class="metrics">
 
-    st.write("")
-
-    o1, o2, o3, o4 = st.columns(4)
-
-
-    with o1:
-
-        st.html(
-            f"""
-            <div class="metric-card">
-
+            <div class="metric">
                 <div class="metric-label">
-                    PRIORITY ACTIONS
+                    ACTION ITEMS
                 </div>
-
                 <div class="metric-value">
-                    <span class="metric-accent">
-                        {action_count if action_count else "—"}
-                    </span>
+                    <span>{action_count}</span>
                 </div>
-
             </div>
-            """
-        )
 
-
-    with o2:
-
-        st.html(
-            f"""
-            <div class="metric-card">
-
+            <div class="metric">
                 <div class="metric-label">
                     RISK ITEMS
                 </div>
-
                 <div class="metric-value">
-                    <span class="metric-accent">
-                        {risk_count if risk_count else "—"}
-                    </span>
+                    <span>{risk_count}</span>
                 </div>
-
             </div>
-            """
-        )
 
-
-    with o3:
-
-        st.html(
-            f"""
-            <div class="metric-card">
-
+            <div class="metric">
                 <div class="metric-label">
-                    INFORMATION GAPS
+                    INFO GAPS
                 </div>
-
                 <div class="metric-value">
-                    <span class="metric-accent">
-                        {gap_count if gap_count else "—"}
-                    </span>
+                    <span>{gap_count}</span>
                 </div>
-
             </div>
-            """
-        )
 
-
-    with o4:
-
-        st.html(
-            """
-            <div class="metric-card">
-
+            <div class="metric">
                 <div class="metric-label">
-                    AI GENERATIONS
+                    REPORT SECTIONS
                 </div>
-
                 <div class="metric-value">
-                    <span class="metric-accent">
-                        01
-                    </span>
+                    <span>{section_count}</span>
                 </div>
-
             </div>
-            """
-        )
 
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # ========================================================
-    # REPORT TABS
+    # TABS
     # ========================================================
 
     st.write("")
 
-    st.markdown(
-        '<div class="section-title">Intelligence Report</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="section-subtitle">Explore the generated analysis by operational area.</div>',
-        unsafe_allow_html=True,
-    )
-
-
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+    tabs = st.tabs(
         [
-            "📊 Executive",
-            "⚙️ Operations",
-            "⚠️ Risk & Priority",
-            "🚀 Roadmap",
-            "📈 KPIs & QA",
-            "📄 Full Report",
+            "Overview",
+            "Operations",
+            "Risk",
+            "Roadmap",
+            "KPIs",
+            "Full Report",
         ]
     )
 
-
     # ========================================================
-    # TAB 1 — EXECUTIVE
-    # ========================================================
-
-    with tab1:
-
-        with st.container(border=True):
-
-            st.markdown(
-                "#### Executive Summary"
-            )
-
-            st.markdown(
-                sections.get(
-                    "Executive Summary",
-                    "Executive summary was not returned."
-                )
-            )
-
-            st.markdown(
-                "#### Department Impact"
-            )
-
-            st.markdown(
-                sections.get(
-                    "Department Impact",
-                    "No department impact information returned."
-                )
-            )
-
-            st.markdown(
-                "#### Information Gaps"
-            )
-
-            st.markdown(
-                sections.get(
-                    "Information Gaps",
-                    "No information gaps returned."
-                )
-            )
-
-
-    # ========================================================
-    # TAB 2 — OPERATIONS
+    # OVERVIEW
     # ========================================================
 
-    with tab2:
+    with tabs[0]:
 
-        with st.container(border=True):
+        st.markdown(
+            "### Executive Summary"
+        )
 
-            st.markdown(
-                "#### Recommended Workflow"
+        st.markdown(
+            sections.get(
+                "Executive Summary",
+                "No executive summary returned.",
             )
+        )
 
-            st.markdown(
-                sections.get(
-                    "Recommended Workflow",
-                    "No workflow returned."
-                )
+        st.divider()
+
+        st.markdown(
+            "### Business Analysis"
+        )
+
+        st.markdown(
+            sections.get(
+                "Business Analysis",
+                "No business analysis returned.",
             )
+        )
 
-            st.divider()
+        st.divider()
 
-            st.markdown(
-                "#### Process Canvas"
+        st.markdown(
+            "### Department Impact"
+        )
+
+        st.markdown(
+            sections.get(
+                "Department Impact",
+                "No department impact returned.",
             )
+        )
 
-            st.markdown(
-                sections.get(
-                    "Process Canvas",
-                    "No process canvas returned."
-                )
+        st.divider()
+
+        st.markdown(
+            "### Information Gaps"
+        )
+
+        st.markdown(
+            sections.get(
+                "Information Gaps",
+                "No information gaps returned.",
             )
-
+        )
 
     # ========================================================
-    # TAB 3 — RISK & PRIORITY
+    # OPERATIONS
     # ========================================================
 
-    with tab3:
+    with tabs[1]:
 
-        with st.container(border=True):
+        st.markdown(
+            "### Recommended Workflow"
+        )
 
-            st.markdown(
-                "#### Priority Matrix"
+        st.markdown(
+            sections.get(
+                "Recommended Workflow",
+                "No workflow returned.",
             )
+        )
 
-            st.markdown(
-                sections.get(
-                    "Priority Matrix",
-                    "No priority matrix returned."
-                )
+        st.divider()
+
+        st.markdown(
+            "### Process Canvas"
+        )
+
+        st.markdown(
+            sections.get(
+                "Process Canvas",
+                "No process canvas returned.",
             )
+        )
 
-            st.divider()
+        st.divider()
 
-            st.markdown(
-                "#### Risk Register"
+        st.markdown(
+            "### Priority Matrix"
+        )
+
+        st.markdown(
+            sections.get(
+                "Priority Matrix",
+                "No priority matrix returned.",
             )
-
-            st.markdown(
-                sections.get(
-                    "Risk Register",
-                    "No risk register returned."
-                )
-            )
-
-            st.divider()
-
-            st.markdown(
-                "#### Priority Actions"
-            )
-
-            st.markdown(
-                sections.get(
-                    "Priority Actions",
-                    "No priority actions returned."
-                )
-            )
-
+        )
 
     # ========================================================
-    # TAB 4 — ROADMAP
+    # RISK
     # ========================================================
 
-    with tab4:
+    with tabs[2]:
 
-        with st.container(border=True):
+        st.markdown(
+            "### Risk Register"
+        )
 
-            st.markdown(
-                "#### 30 / 60 / 90 Day Roadmap"
+        st.markdown(
+            sections.get(
+                "Risk Register",
+                "No risk register returned.",
             )
+        )
 
-            roadmap = sections.get(
+        st.divider()
+
+        st.markdown(
+            "### Priority Actions"
+        )
+
+        st.markdown(
+            sections.get(
+                "Priority Actions",
+                "No priority actions returned.",
+            )
+        )
+
+    # ========================================================
+    # ROADMAP
+    # ========================================================
+
+    with tabs[3]:
+
+        st.markdown(
+            "### 30 / 60 / 90 Day Roadmap"
+        )
+
+        st.markdown(
+            sections.get(
                 "30/60/90 Day Roadmap",
-                "No roadmap returned."
+                "No roadmap returned.",
             )
-
-            st.markdown(
-                roadmap
-            )
-
+        )
 
     # ========================================================
-    # TAB 5 — KPIs & QA
+    # KPI + QA
     # ========================================================
 
-    with tab5:
+    with tabs[4]:
 
-        with st.container(border=True):
+        st.markdown(
+            "### KPIs / Success Metrics"
+        )
 
-            st.markdown(
-                "#### KPIs / Success Metrics"
+        st.markdown(
+            sections.get(
+                "KPIs / Success Metrics",
+                "No KPI information returned.",
             )
+        )
 
-            st.markdown(
-                sections.get(
-                    "KPIs / Success Metrics",
-                    "No KPI information returned."
-                )
-            )
+        st.divider()
+
+        st.markdown(
+            "### AI QA Audit"
+        )
+
+        qa_text = sections.get(
+            "QA Audit",
+            "No QA audit returned.",
+        )
+
+        st.markdown(
+            qa_text
+        )
+
+        qa_scores = extract_qa_scores(
+            qa_text
+        )
+
+        if qa_scores:
 
             st.divider()
 
-            st.markdown(
-                "#### AI QA Audit"
+            score_cols = st.columns(
+                len(qa_scores)
             )
 
-            st.markdown(
-                sections.get(
-                    "QA Audit",
-                    "No QA audit returned."
-                )
-            )
+            for col, (
+                label,
+                score,
+            ) in zip(
+                score_cols,
+                qa_scores,
+            ):
 
+                with col:
+
+                    try:
+                        numeric_score = int(score)
+                    except Exception:
+                        numeric_score = 0
+
+                    st.metric(
+                        label,
+                        f"{numeric_score}/10",
+                    )
 
     # ========================================================
-    # TAB 6 — FULL REPORT
+    # FULL REPORT
     # ========================================================
 
-    with tab6:
+    with tabs[5]:
 
-        with st.container(border=True):
+        with st.container(
+            border=True
+        ):
 
             st.markdown(
                 result
             )
 
-
     # ========================================================
-    # DOWNLOAD REPORTS
+    # EXPORT
     # ========================================================
 
     st.write("")
 
     st.markdown(
-        '<div class="section-title">Export</div>',
+        """
+        <div class="section">
+            <div class="section-title">Export</div>
+            <div class="section-desc">
+                Save the generated report for documentation or presentation.
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
-
-    st.markdown(
-        '<div class="section-subtitle">Save the generated intelligence report for documentation or presentation.</div>',
-        unsafe_allow_html=True,
-    )
-
 
     pdf_file = create_pdf(
-        result
+        result,
+        report_id,
     )
 
     docx_file = create_docx(
-        result
+        result,
+        report_id,
     )
 
-
     d1, d2, d3 = st.columns(3)
-
 
     with d1:
 
         st.download_button(
-
-            "📄 Download TXT",
-
+            "Download TXT",
             data=str(result),
-
-            file_name="businessops_report.txt",
-
+            file_name=f"{report_id}.txt",
             mime="text/plain",
-
             use_container_width=True,
-
         )
-
 
     with d2:
 
         st.download_button(
-
-            "📕 Download PDF",
-
+            "Download PDF",
             data=pdf_file,
-
-            file_name="businessops_report.pdf",
-
+            file_name=f"{report_id}.pdf",
             mime="application/pdf",
-
             use_container_width=True,
-
         )
-
 
     with d3:
 
         st.download_button(
-
-            "📝 Download Word",
-
+            "Download Word",
             data=docx_file,
-
-            file_name="businessops_report.docx",
-
+            file_name=f"{report_id}.docx",
             mime=(
                 "application/vnd.openxmlformats-"
                 "officedocument.wordprocessingml.document"
             ),
-
             use_container_width=True,
-
         )
 
-
     # ========================================================
-    # REQUEST USED
+    # REQUEST
     # ========================================================
 
     with st.expander(
-        "View submitted business request"
+        "View submitted request"
     ):
 
         st.write(
@@ -2515,105 +2292,24 @@ if "businessops_result" in st.session_state:
 
 
 # ============================================================
-# FEATURE SHOWCASE
+# SMALL CAPABILITY LINE
 # ============================================================
 
 st.write("")
 
 st.markdown(
-    '<div class="section-title">Business Intelligence Capabilities</div>',
+    """
+    <div style="
+        text-align:center;
+        padding:9px;
+        color:#4b596c;
+        font-size:9px;
+    ">
+        Business Analysis · Operations · Risk · Actions · Roadmap · KPIs · QA
+    </div>
+    """,
     unsafe_allow_html=True,
 )
-
-st.markdown(
-    '<div class="section-subtitle">Core intelligence capabilities available in the BusinessOps workflow.</div>',
-    unsafe_allow_html=True,
-)
-
-
-feature_data = [
-
-    (
-        "🎯",
-        "Business Analysis",
-        "Transforms an unstructured business problem into objectives, stakeholders, constraints and expected outcomes.",
-    ),
-
-    (
-        "🏢",
-        "Department Impact",
-        "Maps relevant business functions and identifies where responsibilities or dependencies exist.",
-    ),
-
-    (
-        "⚠️",
-        "Risk Register",
-        "Identifies operational risks with impact, likelihood, mitigation and suggested ownership.",
-    ),
-
-    (
-        "🔥",
-        "Priority Matrix",
-        "Organizes important actions according to business urgency and importance.",
-    ),
-
-    (
-        "🚀",
-        "Action Roadmap",
-        "Converts recommendations into practical actions and a 30/60/90-day implementation direction.",
-    ),
-
-    (
-        "📈",
-        "KPI Intelligence",
-        "Generates measurable success indicators to evaluate whether the process is improving.",
-    ),
-
-    (
-        "🔎",
-        "Information Gaps",
-        "Detects missing information and assumptions that could affect implementation quality.",
-    ),
-
-    (
-        "🛡️",
-        "AI QA Audit",
-        "Reviews completeness, actionability, risk coverage, KPI coverage and clarity.",
-    ),
-
-]
-
-
-feature_cols = st.columns(4)
-
-
-for i, (
-    icon,
-    title,
-    description,
-) in enumerate(feature_data):
-
-    with feature_cols[i % 4]:
-
-        st.html(
-            f"""
-            <div class="feature-card">
-
-                <div class="feature-icon">
-                    {icon}
-                </div>
-
-                <div class="feature-title">
-                    {title}
-                </div>
-
-                <div class="feature-text">
-                    {description}
-                </div>
-
-            </div>
-            """
-        )
 
 
 # ============================================================
@@ -2622,15 +2318,11 @@ for i, (
 
 st.divider()
 
-st.html(
+st.markdown(
     """
     <div class="footer">
-
-        BusinessOps AI
-        · Autonomous Business Process Intelligence
-        · CrewAI + Groq
-        · Streamlit Cloud
-
+        BusinessOps AI · CrewAI + Groq · Streamlit Cloud
     </div>
-    """
+    """,
+    unsafe_allow_html=True,
 )
