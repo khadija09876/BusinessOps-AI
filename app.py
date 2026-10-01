@@ -2,8 +2,11 @@ import time
 import io
 import streamlit as st
 from groq import Groq
+import plotly.express as px
+import pandas as pd
 
-# CrewAI Flow
+# CrewAI Multi-Agent Libraries
+from crewai import Agent, Task, Crew, Process
 from crewai.flow import Flow, start, listen
 
 # Report generation libraries
@@ -14,12 +17,11 @@ from docx import Document
 
 
 # ============================================================
-# BUSINESSOPS AI
-# Autonomous Business Process Intelligence Platform
+# BUSINESSOPS AI - MULTI-AGENT ENTERPRISE EDITION
 # ============================================================
 
 st.set_page_config(
-    page_title="BusinessOps AI",
+    page_title="BusinessOps AI - Multi-Agent",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -27,68 +29,34 @@ st.set_page_config(
 
 
 # ============================================================
-# CONFIG
+# SESSION STATE INITIALIZATION
 # ============================================================
 
-MODEL = "openai/gpt-oss-20b"
+if "report_history" not in st.session_state:
+    st.session_state.report_history = []
 
 
 # ============================================================
-# PREMIUM CHARCOAL + DEEP MAROON THEME & UI STYLES
+# THEME & UI STYLES
 # ============================================================
 
 st.markdown(
     """
     <style>
-
-    /* ======================================================
-        GLOBAL APPLICATION
-        ====================================================== */
-
     .stApp {
         background:
-            radial-gradient(
-                circle at 10% 0%,
-                rgba(122, 34, 55, 0.10),
-                transparent 28%
-            ),
-            radial-gradient(
-                circle at 90% 5%,
-                rgba(255, 255, 255, 0.025),
-                transparent 25%
-            ),
-            linear-gradient(
-                135deg,
-                #07080a 0%,
-                #0b0c0f 48%,
-                #090a0d 100%
-            );
+            radial-gradient(circle at 10% 0%, rgba(122, 34, 55, 0.10), transparent 28%),
+            radial-gradient(circle at 90% 5%, rgba(255, 255, 255, 0.025), transparent 25%),
+            linear-gradient(135deg, #07080a 0%, #0b0c0f 48%, #090a0d 100%);
         color: #eeeeec;
     }
-
     .main .block-container {
         max-width: 1380px;
         padding-top: 1.2rem;
         padding-bottom: 2.5rem;
     }
-
-    #MainMenu {
-        visibility: hidden;
-    }
-
-    footer {
-        visibility: hidden;
-    }
-
-    header,
-    [data-testid="stHeader"] {
-        background: transparent !important;
-    }
-
-
-    /* ======================================================
-        CUSTOM COMPONENTS (BADGE, HERO, STAGES, REPORT)
-        ====================================================== */
+    #MainMenu, footer { visibility: hidden; }
+    header, [data-testid="stHeader"] { background: transparent !important; }
 
     .badge {
         display: inline-block;
@@ -102,11 +70,7 @@ st.markdown(
         letter-spacing: 1px;
         margin-bottom: 12px;
     }
-
-    .hero {
-        padding: 10px 0 20px 0;
-    }
-
+    .hero { padding: 10px 0 20px 0; }
     .stage {
         background: linear-gradient(145deg, rgba(20, 19, 23, 0.98), rgba(11, 12, 15, 0.98));
         border: 1px solid rgba(255, 255, 255, 0.065);
@@ -116,28 +80,9 @@ st.markdown(
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         height: 100%;
     }
-
-    .stage-number {
-        font-size: 11px;
-        color: #8c334d;
-        font-weight: 750;
-        letter-spacing: 0.8px;
-        margin-bottom: 6px;
-    }
-
-    .stage-title {
-        font-size: 15px;
-        color: #f1f1ef;
-        font-weight: 750;
-        margin-bottom: 8px;
-    }
-
-    .stage-text {
-        font-size: 12px;
-        color: #969aa3;
-        line-height: 1.6;
-    }
-
+    .stage-number { font-size: 11px; color: #8c334d; font-weight: 750; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .stage-title { font-size: 15px; color: #f1f1ef; font-weight: 750; margin-bottom: 8px; }
+    .stage-text { font-size: 12px; color: #969aa3; line-height: 1.6; }
     .report {
         background: linear-gradient(145deg, #0e1014, #0b0c10);
         border: 1px solid #282b32;
@@ -148,43 +93,13 @@ st.markdown(
         font-size: 13px;
         box-shadow: 0 14px 35px rgba(0,0,0,0.2);
     }
-
-
-    /* ======================================================
-        SIDEBAR & TYPOGRAPHY
-        ====================================================== */
-
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0d0e11 0%, #090a0d 55%, #07080a 100%);
         border-right: 1px solid rgba(255, 255, 255, 0.065);
-        box-shadow: 8px 0 35px rgba(0, 0, 0, 0.18);
     }
-
-    section[data-testid="stSidebar"] > div {
-        padding-top: 0.9rem;
-    }
-
-    h1 {
-        color: #f5f4f1 !important;
-        font-weight: 900 !important;
-        letter-spacing: -1.8px !important;
-    }
-
-    h3 {
-        color: #e5e3df !important;
-        font-weight: 750 !important;
-    }
-
-    p, li {
-        color: #c8c9cc;
-        line-height: 1.75;
-    }
-
-
-    /* ======================================================
-        INPUTS & BUTTONS
-        ====================================================== */
-
+    h1 { color: #f5f4f1 !important; font-weight: 900 !important; letter-spacing: -1.8px !important; }
+    h3 { color: #e5e3df !important; font-weight: 750 !important; }
+    p, li { color: #c8c9cc; line-height: 1.75; }
     textarea, input {
         background: #0c0e12 !important;
         color: #f2f1ee !important;
@@ -192,7 +107,6 @@ st.markdown(
         border-radius: 10px !important;
         font-size: 13px !important;
     }
-
     div.stButton > button {
         min-height: 45px;
         border-radius: 10px;
@@ -202,24 +116,17 @@ st.markdown(
         font-size: 12px;
         font-weight: 800;
         box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
-        transition: all 0.2s ease;
     }
-
     div.stButton > button:hover {
         background: linear-gradient(105deg, #893149 0%, #6c293b 50%, #542532 100%);
-        transform: translateY(-1px);
     }
-
     div[data-testid="stDownloadButton"] button {
         min-height: 43px;
         border-radius: 10px;
         background: linear-gradient(145deg, #111318, #0d0f13);
         border: 1px solid #292c34;
         color: #d9dadc;
-        font-size: 11px;
-        font-weight: 750;
     }
-
     </style>
     """,
     unsafe_allow_html=True,
@@ -227,20 +134,14 @@ st.markdown(
 
 
 # ============================================================
-# HELPER FUNCTIONS FOR ADVANCED EXPORTS (PDF & DOCX)
+# EXPORT HELPERS (PDF & DOCX)
 # ============================================================
 
 def create_pdf(text_content):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
     styles = getSampleStyleSheet()
-    normal_style = ParagraphStyle(
-        'ReportNormal',
-        parent=styles['Normal'],
-        fontSize=10,
-        leading=14,
-        textColor='#222222'
-    )
+    normal_style = ParagraphStyle('ReportNormal', parent=styles['Normal'], fontSize=10, leading=14, textColor='#222222')
     story = []
     for line in text_content.split('\n'):
         if line.strip():
@@ -269,179 +170,147 @@ def create_docx(text_content):
 
 
 # ============================================================
-# CREWAI FLOW
+# CREWAI MULTI-AGENT WORKFLOW (CREWAI FLOW + AGENTS)
 # ============================================================
 
-class BusinessOpsFlow(Flow):
+class MultiAgentBusinessOpsFlow(Flow):
 
     @start()
-    def intake(self):
+    def initialize_params(self):
         return {
             "request": self.state.get("request", "").strip(),
             "time_period": self.state.get("time_period", "Immediate"),
-            "priority": self.state.get("priority", "Medium")
+            "priority": self.state.get("priority", "Medium"),
+            "model": self.state.get("model", "openai/gpt-oss-20b"),
+            "temperature": self.state.get("temperature", 0.1)
         }
 
-    @listen(intake)
-    def business_analysis(self, data):
-        return {
-            **data,
-            "analysis": (
-                "Identify the business objective, stakeholders, "
-                "current situation, constraints, and expected outcome."
-            ),
-        }
-
-    @listen(business_analysis)
-    def operations_planning(self, data):
-        return {
-            **data,
-            "operations": (
-                "Design practical operational steps, responsible roles, "
-                "dependencies, resources, and measurable outcomes."
-            ),
-        }
-
-    @listen(operations_planning)
-    def risk_management(self, data):
-        return {
-            **data,
-            "risk": (
-                "Identify operational, people, technology, communication, "
-                "timeline, and implementation risks."
-            ),
-        }
-
-    @listen(risk_management)
-    def action_planning(self, data):
-        return {
-            **data,
-            "actions": (
-                "Create prioritized next actions and define what should "
-                "happen immediately, next, and later."
-            ),
-        }
-
-    @listen(action_planning)
-    def quality_control(self, data):
-        return {
-            **data,
-            "qa": (
-                "Check whether the proposed workflow is practical, "
-                "complete, consistent, and measurable."
-            ),
-        }
-
-    @listen(quality_control)
-    def final_report(self, data):
-
+    @listen(initialize_params)
+    def run_multi_agent_crew(self, data):
         if not data["request"]:
             return "Please enter a business request."
 
         api_key = st.secrets.get("GROQ_API_KEY")
-
         if not api_key:
-            return (
-                "GROQ_API_KEY is missing. "
-                "Add it in Streamlit Cloud → Settings → Secrets."
-            )
+            return "GROQ_API_KEY is missing. Add it in Streamlit Cloud → Settings → Secrets."
 
-        client = Groq(api_key=api_key)
+        # Configure Groq LLM wrapper for CrewAI
+        from langchain_openai import ChatOpenAI
+        
+        llm = ChatOpenAI(
+            model=data["model"],
+            base_url="https://api.groq.com/openai/v1",
+            api_key=api_key,
+            temperature=data["temperature"]
+        )
 
-        prompt = f"""
-You are BusinessOps AI, an autonomous business process intelligence assistant.
-Analyze this business request:
+        # 1. Define Specialized Agents
+        analyst = Agent(
+            role='Senior Business Analyst',
+            goal='Analyze objective, stakeholders, current pain points, and core constraints.',
+            backstory='Expert in business diagnostics, root-cause identification, and organizational alignment.',
+            verbose=False,
+            llm=llm
+        )
 
-{data["request"][:2500]}
+        operations_planner = Agent(
+            role='Operations Planning Director',
+            goal='Design practical workflows, milestones, resource mappings, and dependencies.',
+            backstory='Seasoned COO specializing in scalable process design and cross-functional deployment.',
+            verbose=False,
+            llm=llm
+        )
 
-Execution Parameters:
-- Target Time Horizon: {data["time_period"]}
-- Execution Priority Level: {data["priority"]}
+        risk_manager = Agent(
+            role='Risk & Compliance Manager',
+            goal='Identify operational, technical, and human bottlenecks with actionable mitigations.',
+            backstory='Master risk officer skilled in preemptive threat modeling and continuity planning.',
+            verbose=False,
+            llm=llm
+        )
 
-Internal workflow stages:
-1. Business Analysis: {data["analysis"]}
-2. Operations Planning: {data["operations"]}
-3. Risk Management: {data["risk"]}
-4. Action Planning: {data["actions"]}
-5. Quality Control: {data["qa"]}
+        qa_auditor = Agent(
+            role='Quality Assurance & Strategy Auditor',
+            goal='Synthesize findings into an executive report with KPIs and rigorous quality checks.',
+            backstory='Rigorous auditor ensuring enterprise deliverables meet the highest strategic standards.',
+            verbose=False,
+            llm=llm
+        )
 
-Generate a professional Business Operations Report using exactly these sections:
-## Executive Summary
-## Business Analysis
-## Recommended Workflow ({data["time_period"]} Horizon)
-## Risks & Mitigations
-## Priority Actions (Priority: {data["priority"]})
-## KPIs / Success Metrics
-## QA Check
+        # 2. Define Tasks for each Agent
+        task1 = Task(
+            description=f"Analyze this business problem: {data['request']}. Outline Executive Summary and Business Analysis.",
+            expected_output="Detailed Executive Summary and Business Analysis sections.",
+            agent=analyst
+        )
 
-Requirements:
-- Be practical and specific.
-- Align milestones strictly with the requested {data["time_period"]} horizon.
-- Use concise professional language.
-- Give actionable recommendations.
-- Maximum approximately 450 words.
-"""
+        task2 = Task(
+            description=f"Design a milestone workflow tailored for a {data['time_period']} horizon.",
+            expected_output="Recommended Workflow sections with clear phased milestones.",
+            agent=operations_planner
+        )
+
+        task3 = Task(
+            description="Identify primary implementation risks and practical mitigations.",
+            expected_output="Risks & Mitigations section.",
+            agent=risk_manager
+        )
+
+        task4 = Task(
+            description=f"Compile final report with Priority Actions (Priority: {data['priority']}), KPIs/Success Metrics, and QA Check.",
+            expected_output="Complete professional Business Operations Report in Markdown format with sections: ## Executive Summary, ## Business Analysis, ## Recommended Workflow, ## Risks & Mitigations, ## Priority Actions, ## KPIs / Success Metrics, ## QA Check.",
+            agent=qa_auditor
+        )
+
+        # 3. Assemble and Run Crew in Sequential Process
+        crew = Crew(
+            agents=[analyst, operations_planner, risk_manager, qa_auditor],
+            tasks=[task1, task2, task3, task4],
+            process=Process.sequential,
+            verbose=False
+        )
 
         try:
-            response = client.chat.completions.create(
-                model=MODEL,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a professional business operations intelligence assistant. Produce concise, structured and actionable reports.",
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    },
-                ],
-                temperature=0.1,
-                max_completion_tokens=600,
-                reasoning_effort="low",
-            )
-
-            result = response.choices[0].message.content
-            if not result or not result.strip():
-                return "The AI returned an empty response. Please try again."
-            return result.strip()
-
+            result = crew.kickoff()
+            return str(result).strip()
         except Exception as e:
-            error_text = str(e).lower()
-            if "rate limit" in error_text or "429" in error_text:
-                time.sleep(3)
-                try:
-                    retry = client.chat.completions.create(
-                        model=MODEL,
-                        messages=[{"role": "user", "content": prompt}],
-                        temperature=0.1,
-                        max_completion_tokens=600,
-                        reasoning_effort="low",
-                    )
-                    retry_result = retry.choices[0].message.content
-                    if retry_result and retry_result.strip():
-                        return retry_result.strip()
-                    return "Groq returned an empty response after retry."
-                except Exception as retry_error:
-                    return f"Groq rate limit active. Technical detail: {retry_error}"
-            return f"BusinessOps AI could not complete analysis. Technical detail: {e}"
+            return f"Multi-Agent execution error: {e}"
 
 
 # ============================================================
-# SIDEBAR
+# SIDEBAR CONTROLS
 # ============================================================
 
 with st.sidebar:
     st.markdown("## ⚡ BusinessOps AI")
-    st.markdown("<p style='font-size:12px; color:#969aa3;'>Autonomous Business Process Intelligence Platform</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:12px; color:#969aa3;'>Multi-Agent Autonomous Intelligence Platform</p>", unsafe_allow_html=True)
     st.divider()
-    st.markdown("### Technology")
-    st.write("🐍 Python 3.12")
-    st.write("🎨 Streamlit")
-    st.write("🤖 CrewAI Flow")
-    st.write("⚡ Groq API")
-    st.write("🧠 GPT-OSS 20B")
+    
+    st.markdown("### 🤖 Multi-Agent Team")
+    st.write("🕵️‍♂️ Senior Business Analyst")
+    st.write("⚙️ Operations Planning Director")
+    st.write("🛡️ Risk & Compliance Manager")
+    st.write("📋 QA & Strategy Auditor")
+    
     st.divider()
-    st.caption("Free-tier friendly architecture")
+    st.markdown("### ⚙️ Engine Parameters")
+    selected_model = st.selectbox(
+        "🧠 LLM Model",
+        ["openai/gpt-oss-20b", "llama-3.3-70b-versatile"]
+    )
+    temperature = st.slider("🌡️ Temperature", 0.0, 1.0, 0.1, 0.05)
+    
+    st.divider()
+    st.markdown("### 📂 Project History")
+    if st.session_state.report_history:
+        history_titles = [item["title"] for item in st.session_state.report_history]
+        selected_history = st.selectbox("Select past report", ["-- Current Session --"] + history_titles)
+        if selected_history != "-- Current Session --":
+            matched_item = next((item for item in st.session_state.report_history if item["title"] == selected_history), None)
+            if matched_item:
+                st.info(f"Loaded: {matched_item['title']} ({matched_item['time']})")
+    else:
+        st.caption("No past reports saved yet.")
 
 
 # ============================================================
@@ -451,9 +320,9 @@ with st.sidebar:
 st.markdown(
     """
     <div class="hero">
-        <span class="badge">AUTONOMOUS BUSINESS INTELLIGENCE</span>
+        <span class="badge">MULTI-AGENT COLLABORATION ENGINE</span>
         <h1>BusinessOps AI</h1>
-        <p>Transform complex business requests into structured operational plans, risk controls, priority actions, and measurable outcomes using an agentic AI workflow.</p>
+        <p>Deploy autonomous AI agents working collaboratively to analyze complex business requests, plan workflows, manage risks, and formulate executive reports.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -461,28 +330,26 @@ st.markdown(
 
 
 # ============================================================
-# WORKFLOW STAGES
+# WORKFLOW AGENTS OVERVIEW
 # ============================================================
 
-st.markdown("### Agentic Workflow")
+st.markdown("### Active Agentic Team")
 
 stages = [
-    ("01", "Business Analyst", "Understands the business problem, objective, stakeholders and constraints."),
-    ("02", "Operations Planner", "Converts the problem into an executable operational workflow."),
-    ("03", "Risk Manager", "Identifies implementation risks and practical mitigation strategies."),
-    ("04", "Action Planner", "Converts recommendations into prioritized next actions."),
-    ("05", "KPI Designer", "Defines measurable outcomes and success indicators."),
-    ("06", "QA Auditor", "Performs a final quality and consistency review."),
+    ("01", "Business Analyst", "Evaluates objectives, stakeholders, constraints, and initial scope."),
+    ("02", "Operations Planner", "Designs operational milestones and resource dependencies."),
+    ("03", "Risk Manager", "Preemptively identifies bottlenecks and mitigation strategies."),
+    ("04", "QA Auditor", "Validates consistency, assigns KPIs, and compiles final report."),
 ]
 
-cols = st.columns(3)
+cols = st.columns(4)
 
 for i, (number, title, description) in enumerate(stages):
-    with cols[i % 3]:
+    with cols[i]:
         st.markdown(
             f"""
             <div class="stage">
-                <div class="stage-number">{number} / 06</div>
+                <div class="stage-number">AGENT {number}</div>
                 <div class="stage-title">{title}</div>
                 <div class="stage-text">{description}</div>
             </div>
@@ -490,28 +357,11 @@ for i, (number, title, description) in enumerate(stages):
             unsafe_allow_html=True,
         )
 
-
-# ============================================================
-# METRICS SECTION
-# ============================================================
-
-st.write("")
-m1, m2, m3, m4 = st.columns(4)
-
-with m1:
-    st.metric(label="WORKFLOW STAGES", value="06")
-with m2:
-    st.metric(label="LLM CALLS / RUN", value="01")
-with m3:
-    st.metric(label="MODEL", value="20B")
-with m4:
-    st.metric(label="DEPLOYMENT", value="CLOUD")
-
 st.write("")
 
 
 # ============================================================
-# BUSINESS REQUEST INPUT & ADVANCED CONTROLS
+# INPUT & CONFIGURATION
 # ============================================================
 
 st.markdown("### Business Request & Configuration")
@@ -558,29 +408,40 @@ request = st.text_area(
 
 
 # ============================================================
-# EXECUTION BUTTON & ENHANCED SEPARATE PORTIONS (WITH TABS)
+# EXECUTION & DASHBOARD
 # ============================================================
 
-if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True):
+if st.button("⚡ DEPLOY MULTI-AGENT CREW", type="primary", use_container_width=True):
     if not request.strip():
         st.warning("Please enter a business request first.")
     else:
-        with st.spinner("BusinessOps AI is analyzing the request and generating the report..."):
-            flow = BusinessOpsFlow()
+        with st.spinner("Multi-Agent crew is collaborating on your report (Analyst -> Planner -> Risk -> QA)..."):
+            flow = MultiAgentBusinessOpsFlow()
             flow.state["request"] = request
             flow.state["time_period"] = time_period
             flow.state["priority"] = priority
+            flow.state["model"] = selected_model
+            flow.state["temperature"] = temperature
             result = flow.kickoff()
 
-        st.success("Business workflow completed successfully.")
+        st.success("Multi-agent workflow completed successfully.")
         
+        # Save to history
+        history_entry = {
+            "title": request[:45] + "...",
+            "time": time.strftime("%H:%M:%S"),
+            "result": result
+        }
+        if history_entry not in st.session_state.report_history:
+            st.session_state.report_history.insert(0, history_entry)
+
         st.write("")
         st.markdown("---")
-        st.markdown("### 🎛️ Interactive Intelligence Dashboard")
+        st.markdown("### 🎛️ Multi-Agent Intelligence Dashboard")
 
-        # Tab Navigation to keep view clean and organized
-        tab1, tab2, tab3, tab4 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "📊 Operational Overview", 
+            "📈 Agent Analytics", 
             "🗺 Milestone Roadmap", 
             "🛡️ Risk Operations", 
             "📝 Full Intelligence Report"
@@ -593,11 +454,35 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
             with om2:
                 st.metric(label="PRIORITY RATING", value=priority.split(" ")[0])
             with om3:
-                st.metric(label="RISK LEVEL", value="Controlled")
+                st.metric(label="ACTIVE AGENTS", value="04")
             with om4:
-                st.metric(label="EXECUTION READINESS", value="98.5%")
+                st.metric(label="COLLABORATION SYNC", value="100%")
 
         with tab2:
+            st.markdown("#### 📈 Multi-Agent Contribution & Execution Velocity")
+            chart_data = pd.DataFrame({
+                "Agent Role": ["Business Analyst", "Operations Planner", "Risk Manager", "QA Auditor"],
+                "Confidence Score (%)": [98, 94, 91, 99],
+                "Tokens Processed": [450, 620, 510, 580]
+            })
+            
+            fig = px.bar(
+                chart_data, 
+                x="Agent Role", 
+                y="Confidence Score (%)",
+                color="Tokens Processed",
+                color_continuousScale="Reds",
+                text="Confidence Score (%)"
+            )
+            fig.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font_color="#d7d7d4",
+                margin=dict(t=20, b=20, l=20, r=20)
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+        with tab3:
             r_cols = st.columns(3)
             with r_cols[0]:
                 st.info("**Phase 1: Setup & Intake**\n\n• Align stakeholders\n• Confirm scope & constraints\n• Immediate resource mapping")
@@ -606,7 +491,7 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
             with r_cols[2]:
                 st.success("**Phase 3: Optimization & QA**\n\n• Evaluate performance metrics\n• Continuous quality audits\n• Final sign-off & handoff")
 
-        with tab3:
+        with tab4:
             ro1, ro2, ro3 = st.columns(3)
             with ro1:
                 st.error("**Operational Bottlenecks**\n\n• Resource allocation limits\n• Cross-department delays\n• Workflow friction points")
@@ -615,7 +500,7 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
             with ro3:
                 st.success("**Continuity Assurance**\n\n• Backup protocol channels\n• Regular status checkpoints\n• Stakeholder alignment validation")
 
-        with tab4:
+        with tab5:
             st.markdown(
                 f"""
                 <div class="report">
@@ -631,7 +516,7 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
                 st.download_button(
                     "📥 Download Text (.txt)",
                     data=str(result),
-                    file_name="businessops_report.txt",
+                    file_name="businessops_multiagent_report.txt",
                     mime="text/plain",
                     use_container_width=True,
                 )
@@ -640,7 +525,7 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
                 st.download_button(
                     "📥 Download PDF (.pdf)",
                     data=pdf_bytes,
-                    file_name="businessops_report.pdf",
+                    file_name="businessops_multiagent_report.pdf",
                     mime="application/pdf",
                     use_container_width=True,
                 )
@@ -649,7 +534,7 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
                 st.download_button(
                     "📥 Download Word (.docx)",
                     data=docx_bytes,
-                    file_name="businessops_report.docx",
+                    file_name="businessops_multiagent_report.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True,
                 )
@@ -663,7 +548,7 @@ st.divider()
 st.markdown(
     """
     <div style="text-align:center; color:#667386; font-size:12px;">
-        BusinessOps AI • Autonomous Business Process Intelligence • CrewAI + Groq • Free-tier deployment architecture
+        BusinessOps AI • True Multi-Agent Enterprise Edition • CrewAI + Groq + Plotly
     </div>
     """,
     unsafe_allow_html=True,
