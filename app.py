@@ -1,6 +1,5 @@
 import io
 import re
-import time
 from datetime import datetime
 from html import escape
 
@@ -8,7 +7,7 @@ import streamlit as st
 from groq import Groq
 
 from crewai.flow import Flow, start, listen
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import (
@@ -173,44 +172,13 @@ st.markdown(
 
 
     /* ======================================================
-       SIDEBAR BRAND
+       NATIVE STREAMLIT STATUS
     ====================================================== */
 
-    .brand-title {
-        color: #fafafa;
-        font-size: 20px;
-        font-weight: 850;
-        letter-spacing: -0.5px;
-        margin-top: 8px;
-    }
-
-    .brand-subtitle {
-        color: #9298a3;
-        font-size: 11px;
-        line-height: 1.6;
-        margin-top: 4px;
-    }
-
-    .status-box {
-        background: rgba(255,255,255,0.025);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 11px;
-        padding: 13px;
-        margin-top: 18px;
-    }
-
-    .status-label {
-        color: #777d88;
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: 1.2px;
-    }
-
-    .status-online {
-        color: #d79aaa;
-        font-size: 11px;
-        font-weight: 750;
-        margin-top: 5px;
+    section[data-testid="stSidebar"] [data-testid="stAlert"] {
+        background: rgba(128, 38, 57, 0.08) !important;
+        border: 1px solid rgba(185, 91, 115, 0.18) !important;
+        border-radius: 11px !important;
     }
 
 
@@ -391,42 +359,11 @@ st.markdown(
 
 
     /* ======================================================
-       REPORT
+       SIDEBAR CAPTION
     ====================================================== */
 
-    .report-info {
-        background:
-            rgba(128,38,57,0.035);
-
-        border:
-            1px solid rgba(185,91,115,0.10);
-
-        border-radius: 11px;
-
-        padding: 14px 16px;
-
-        margin-top: 10px;
-        margin-bottom: 14px;
-    }
-
-    .report-title {
-        color: #e2e2df;
-        font-size: 14px;
-        font-weight: 800;
-    }
-
-    .report-id {
-        color: #737985;
-        font-size: 9px;
-        margin-top: 4px;
-    }
-
-    .section-label {
-        color: #b95b73;
-        font-size: 9px;
-        font-weight: 850;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
+    section[data-testid="stSidebar"] small {
+        color: #777d88 !important;
     }
 
 
@@ -473,6 +410,7 @@ st.markdown(
 
 def clean_markdown(text: str) -> str:
     """Convert basic markdown into readable plain text."""
+
     if not text:
         return ""
 
@@ -486,6 +424,7 @@ def clean_markdown(text: str) -> str:
 
 def split_report_sections(report: str) -> dict:
     """Split report using ## headings."""
+
     sections = {}
 
     pattern = re.compile(
@@ -520,6 +459,7 @@ def split_report_sections(report: str) -> dict:
 
 def count_bullets(text: str) -> int:
     """Count markdown bullet/numbered lines."""
+
     if not text:
         return 0
 
@@ -608,8 +548,11 @@ def create_pdf(report: str, report_id: str) -> bytes:
     for title, content in sections.items():
 
         if title == "Full Report":
+
             paragraphs = content.split("\n")
+
         else:
+
             story.append(
                 Paragraph(
                     escape(title),
@@ -629,12 +572,10 @@ def create_pdf(report: str, report_id: str) -> bytes:
             if line.startswith("- "):
                 line = "• " + line[2:]
 
-            elif re.match(r"^\d+\.\s+", line):
-                pass
-
             line = clean_markdown(line)
 
             if line:
+
                 story.append(
                     Paragraph(
                         escape(line),
@@ -677,6 +618,7 @@ def create_docx(report: str, report_id: str) -> bytes:
                 line = line.strip()
 
                 if line:
+
                     document.add_paragraph(
                         clean_markdown(line)
                     )
@@ -758,7 +700,9 @@ class BusinessOpsState(BaseModel):
 
     qa_status: str = "Pending"
 
-    workflow_notes: list[str] = []
+    workflow_notes: list[str] = Field(
+        default_factory=list
+    )
 
     report: str = ""
 
@@ -844,15 +788,23 @@ class BusinessOpsFlow(Flow[BusinessOpsState]):
     @listen(quality_control)
     def final_report(self, previous):
 
-        api_key = st.secrets.get("GROQ_API_KEY")
-
-        if not api_key:
+        if "GROQ_API_KEY" not in st.secrets:
 
             raise RuntimeError(
                 "GROQ_API_KEY is missing from Streamlit Secrets."
             )
 
-        client = Groq(api_key=api_key)
+        api_key = st.secrets["GROQ_API_KEY"]
+
+        if not api_key:
+
+            raise RuntimeError(
+                "GROQ_API_KEY is empty in Streamlit Secrets."
+            )
+
+        client = Groq(
+            api_key=api_key
+        )
 
         prompt = f"""
 You are BusinessOps AI, an autonomous business process
@@ -972,35 +924,16 @@ with st.sidebar:
 
     st.markdown("### ◈")
 
-    st.markdown(
-        '<div class="brand-title">BusinessOps AI</div>',
-        unsafe_allow_html=True,
+    st.subheader("BusinessOps AI")
+
+    st.caption(
+        "Autonomous Business Process "
+        "Intelligence Platform"
     )
 
-    st.markdown(
-        """
-        <div class="brand-subtitle">
-            Autonomous Business Process<br>
-            Intelligence Platform
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.caption("SYSTEM STATUS")
 
-    st.markdown(
-        """
-        <div class="status-box">
-            <div class="status-label">
-                SYSTEM STATUS
-            </div>
-
-            <div class="status-online">
-                ● Operational
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.success("● Operational")
 
     st.caption(
         "AI-powered workflow analysis, risk identification, "
@@ -1029,19 +962,16 @@ with st.sidebar:
 # HERO
 # ============================================================
 
-st.markdown(
-    '<div class="section-label">AUTONOMOUS BUSINESS INTELLIGENCE</div>',
-    unsafe_allow_html=True,
+st.caption(
+    "AUTONOMOUS BUSINESS INTELLIGENCE"
 )
 
 st.title("BusinessOps AI")
 
-st.markdown(
-    """
-    Transform business requests into structured operational
-    plans, risk insights, prioritized actions and measurable
-    performance outcomes.
-    """
+st.write(
+    "Transform business requests into structured operational "
+    "plans, risk insights, prioritized actions and measurable "
+    "performance outcomes."
 )
 
 st.divider()
@@ -1051,12 +981,11 @@ st.divider()
 # WORKFLOW
 # ============================================================
 
-st.markdown(
-    '<div class="section-label">AI WORKFLOW</div>',
-    unsafe_allow_html=True,
-)
+st.caption("AI WORKFLOW")
 
-st.subheader("Autonomous Process Intelligence")
+st.subheader(
+    "Autonomous Process Intelligence"
+)
 
 st.caption(
     "A six-stage CrewAI Flow organizes the request before "
@@ -1078,7 +1007,9 @@ for column, (number, name) in zip(
     workflow_cols,
     workflow_steps,
 ):
+
     with column:
+
         st.metric(
             label=number,
             value=name,
@@ -1091,10 +1022,7 @@ for column, (number, name) in zip(
 
 st.divider()
 
-st.markdown(
-    '<div class="section-label">ANALYSIS WORKSPACE</div>',
-    unsafe_allow_html=True,
-)
+st.caption("ANALYSIS WORKSPACE")
 
 st.subheader("Business Request")
 
@@ -1194,9 +1122,13 @@ with st.container(border=True):
 if clear:
 
     st.session_state.businessops_result = ""
+
     st.session_state.businessops_request = ""
+
     st.session_state.businessops_report_id = ""
+
     st.session_state.businessops_timestamp = ""
+
     st.session_state.businessops_meta = {}
 
     st.rerun()
@@ -1231,7 +1163,9 @@ if run:
             )
 
             st.session_state.businessops_request = request
+
             st.session_state.businessops_report_id = report_id
+
             st.session_state.businessops_timestamp = timestamp
 
             with st.spinner(
@@ -1251,6 +1185,7 @@ if run:
                 )
 
                 if hasattr(result, "raw"):
+
                     result = result.raw
 
                 if not result:
@@ -1296,29 +1231,21 @@ if report:
 
     st.divider()
 
-    st.markdown(
-        '<div class="section-label">INTELLIGENCE REPORT</div>',
-        unsafe_allow_html=True,
-    )
+    st.caption("INTELLIGENCE REPORT")
 
     st.subheader("Operational Assessment")
 
-    st.markdown(
-        f"""
-        <div class="report-info">
-            <div class="report-title">
-                BusinessOps Analysis Report
-            </div>
+    with st.container(border=True):
 
-            <div class="report-id">
-                {escape(st.session_state.businessops_report_id)}
-                ·
-                {escape(st.session_state.businessops_timestamp)}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        st.write(
+            "BusinessOps Analysis Report"
+        )
+
+        st.caption(
+            f"{st.session_state.businessops_report_id} "
+            f"· "
+            f"{st.session_state.businessops_timestamp}"
+        )
 
 
     # ========================================================
@@ -1573,10 +1500,7 @@ if report:
 
     st.divider()
 
-    st.markdown(
-        '<div class="section-label">EXPORT REPORT</div>',
-        unsafe_allow_html=True,
-    )
+    st.caption("EXPORT REPORT")
 
     export_cols = st.columns(3)
 
@@ -1665,10 +1589,7 @@ else:
 
     st.divider()
 
-    st.markdown(
-        '<div class="section-label">READY</div>',
-        unsafe_allow_html=True,
-    )
+    st.caption("READY")
 
     st.subheader(
         "Waiting for Business Request"
