@@ -1,6 +1,7 @@
 streamlit
-crewai
 groq
+crewai
 reportlab
 python-docx
-pydantic
+plotly
+pandas
