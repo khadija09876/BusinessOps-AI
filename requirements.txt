@@ -3,3 +3,4 @@ crewai
 groq
 reportlab
 python-docx
+pydantic
