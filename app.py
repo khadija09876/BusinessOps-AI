@@ -1,9 +1,16 @@
 import time
+import io
 import streamlit as st
 from groq import Groq
 
 # CrewAI Flow
 from crewai.flow import Flow, start, listen
+
+# Report generation libraries
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from docx import Document
 
 
 # ============================================================
@@ -220,6 +227,48 @@ st.markdown(
 
 
 # ============================================================
+# HELPER FUNCTIONS FOR PDF & DOCX GENERATION
+# ============================================================
+
+def create_pdf(text_content):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+    styles = getSampleStyleSheet()
+    normal_style = ParagraphStyle(
+        'ReportNormal',
+        parent=styles['Normal'],
+        fontSize=10,
+        leading=14,
+        textColor='#222222'
+    )
+    story = []
+    for line in text_content.split('\n'):
+        if line.strip():
+            story.append(Paragraph(line, normal_style))
+            story.append(Spacer(1, 6))
+        else:
+            story.append(Spacer(1, 10))
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+def create_docx(text_content):
+    doc = Document()
+    for line in text_content.split('\n'):
+        if line.startswith("##"):
+            doc.add_heading(line.replace("##", "").strip(), level=2)
+        elif line.strip():
+            doc.add_paragraph(line.strip())
+        else:
+            doc.add_paragraph("")
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+# ============================================================
 # CREWAI FLOW
 # ============================================================
 
@@ -228,14 +277,15 @@ class BusinessOpsFlow(Flow):
     @start()
     def intake(self):
         return {
-            "request": self.state.get("request", "").strip()
+            "request": self.state.get("request", "").strip(),
+            "time_period": self.state.get("time_period", "Immediate"),
+            "priority": self.state.get("priority", "Medium")
         }
 
     @listen(intake)
     def business_analysis(self, data):
-        request = data["request"]
         return {
-            "request": request,
+            **data,
             "analysis": (
                 "Identify the business objective, stakeholders, "
                 "current situation, constraints, and expected outcome."
@@ -304,6 +354,10 @@ Analyze this business request:
 
 {data["request"][:2500]}
 
+Execution Parameters:
+- Target Time Horizon: {data["time_period"]}
+- Execution Priority Level: {data["priority"]}
+
 Internal workflow stages:
 1. Business Analysis: {data["analysis"]}
 2. Operations Planning: {data["operations"]}
@@ -314,15 +368,15 @@ Internal workflow stages:
 Generate a professional Business Operations Report using exactly these sections:
 ## Executive Summary
 ## Business Analysis
-## Recommended Workflow
+## Recommended Workflow ({data["time_period"]} Horizon)
 ## Risks & Mitigations
-## Priority Actions
+## Priority Actions (Priority: {data["priority"]})
 ## KPIs / Success Metrics
 ## QA Check
 
 Requirements:
 - Be practical and specific.
-- Do not invent company-specific facts.
+- Align timelines strictly with the requested {data["time_period"]} horizon.
 - Use concise professional language.
 - Give actionable recommendations.
 - Maximum approximately 450 words.
@@ -457,10 +511,22 @@ st.write("")
 
 
 # ============================================================
-# BUSINESS REQUEST INPUT
+# BUSINESS REQUEST INPUT & PARAMETERS
 # ============================================================
 
 st.markdown("### Business Request")
+
+col_p1, col_p2 = st.columns(2)
+with col_p1:
+    time_period = st.selectbox(
+        "⏱️ Execution Time Horizon",
+        ["Immediate (24-48 Hours)", "30 Days (Short-term)", "90 Days (Quarterly)", "6 Months (Strategic)"]
+    )
+with col_p2:
+    priority = st.selectbox(
+        "🔥 Priority Level",
+        ["Critical / Urgent", "High", "Medium", "Low"]
+    )
 
 sample = st.selectbox(
     "Quick scenario",
@@ -502,6 +568,8 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
         with st.spinner("BusinessOps AI is analyzing the request and generating the report..."):
             flow = BusinessOpsFlow()
             flow.state["request"] = request
+            flow.state["time_period"] = time_period
+            flow.state["priority"] = priority
             result = flow.kickoff()
 
         st.success("Business workflow completed.")
@@ -516,13 +584,34 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
             unsafe_allow_html=True,
         )
 
-        st.download_button(
-            "Download Report",
-            data=str(result),
-            file_name="businessops_report.txt",
-            mime="text/plain",
-            use_container_width=True,
-        )
+        st.write("")
+        dl1, dl2, dl3 = st.columns(3)
+        with dl1:
+            st.download_button(
+                "📥 Download Text (.txt)",
+                data=str(result),
+                file_name="businessops_report.txt",
+                mime="text/plain",
+                use_container_width=True,
+            )
+        with dl2:
+            pdf_data = create_pdf(result)
+            st.download_button(
+                "📥 Download PDF (.pdf)",
+                data=pdf_data,
+                file_name="businessops_report.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+            )
+        with dl3:
+            docx_data = create_docx(result)
+            st.download_button(
+                "📥 Download Word (.docx)",
+                data=docx_data,
+                file_name="businessops_report.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=True,
+            )
 
 
 # ============================================================
