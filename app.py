@@ -558,7 +558,7 @@ request = st.text_area(
 
 
 # ============================================================
-# EXECUTION BUTTON & ENHANCED SEPARATE PORTIONS
+# EXECUTION BUTTON & ENHANCED SEPARATE PORTIONS (WITH TABS)
 # ============================================================
 
 if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True):
@@ -574,86 +574,85 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
 
         st.success("Business workflow completed successfully.")
         
-        # PORTION 1: Executive Health & Metrics Bar
         st.write("")
         st.markdown("---")
-        st.markdown("### 📊 Operational Overview")
-        om1, om2, om3, om4 = st.columns(4)
-        with om1:
-            st.metric(label="TIME HORIZON", value=time_period.split(" ")[0])
-        with om2:
-            st.metric(label="PRIORITY RATING", value=priority.split(" ")[0])
-        with om3:
-            st.metric(label="RISK LEVEL", value="Controlled")
-        with om4:
-            st.metric(label="EXECUTION READINESS", value="98.5%")
+        st.markdown("### 🎛️ Interactive Intelligence Dashboard")
 
-        # PORTION 2: Dedicated Milestone Roadmap Section
-        st.write("")
-        st.markdown("---")
-        st.markdown("### 🗺️️ Milestone Roadmap Strategy")
-        r_cols = st.columns(3)
-        with r_cols[0]:
-            st.info("**Phase 1: Setup & Intake**\n\n• Align stakeholders\n• Confirm scope & constraints\n• Immediate resource mapping")
-        with r_cols[1]:
-            st.warning(f"**Phase 2: Execution ({time_period.split(' ')[0]})**\n\n• Deploy core operational workflows\n• Monitor dependency bottlenecks\n• Risk mitigation deployment")
-        with r_cols[2]:
-            st.success("**Phase 3: Optimization & QA**\n\n• Evaluate performance metrics\n• Continuous quality audits\n• Final sign-off & handoff")
+        # Tab Navigation to keep view clean and organized
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "📊 Operational Overview", 
+            "🗺 Milestone Roadmap", 
+            "🛡️ Risk Operations", 
+            "📝 Full Intelligence Report"
+        ])
 
-        # PORTION 3: Dedicated Risk Operations Intelligence Section
-        st.write("")
-        st.markdown("---")
-        st.markdown("### 🛡️ Risk Operations Intelligence")
-        ro1, ro2, ro3 = st.columns(3)
-        with ro1:
-            st.error("**Operational Bottlenecks**\n\n• Resource allocation limits\n• Cross-department delays\n• Workflow friction points")
-        with ro2:
-            st.warning("**Mitigation Strategy**\n\n• Early escalation matrix\n• Automated tracking triggers\n• Contingency buffer assignment")
-        with ro3:
-            st.success("**Continuity Assurance**\n\n• Backup protocol channels\n• Regular status checkpoints\n• Stakeholder alignment validation")
+        with tab1:
+            om1, om2, om3, om4 = st.columns(4)
+            with om1:
+                st.metric(label="TIME HORIZON", value=time_period.split(" ")[0])
+            with om2:
+                st.metric(label="PRIORITY RATING", value=priority.split(" ")[0])
+            with om3:
+                st.metric(label="RISK LEVEL", value="Controlled")
+            with om4:
+                st.metric(label="EXECUTION READINESS", value="98.5%")
 
-        # PORTION 4: Generated Full Intelligence Report Output
-        st.write("")
-        st.markdown("---")
-        st.markdown("### 📝 Full Intelligence Report")
-        
-        st.markdown(
-            f"""
-            <div class="report">
-            {result.replace(chr(10), "<br>")}
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        with tab2:
+            r_cols = st.columns(3)
+            with r_cols[0]:
+                st.info("**Phase 1: Setup & Intake**\n\n• Align stakeholders\n• Confirm scope & constraints\n• Immediate resource mapping")
+            with r_cols[1]:
+                st.warning(f"**Phase 2: Execution ({time_period.split(' ')[0]})**\n\n• Deploy core operational workflows\n• Monitor dependency bottlenecks\n• Risk mitigation deployment")
+            with r_cols[2]:
+                st.success("**Phase 3: Optimization & QA**\n\n• Evaluate performance metrics\n• Continuous quality audits\n• Final sign-off & handoff")
 
-        st.write("")
-        dl1, dl2, dl3 = st.columns(3)
-        with dl1:
-            st.download_button(
-                "📥 Download Text (.txt)",
-                data=str(result),
-                file_name="businessops_report.txt",
-                mime="text/plain",
-                use_container_width=True,
+        with tab3:
+            ro1, ro2, ro3 = st.columns(3)
+            with ro1:
+                st.error("**Operational Bottlenecks**\n\n• Resource allocation limits\n• Cross-department delays\n• Workflow friction points")
+            with ro2:
+                st.warning("**Mitigation Strategy**\n\n• Early escalation matrix\n• Automated tracking triggers\n• Contingency buffer assignment")
+            with ro3:
+                st.success("**Continuity Assurance**\n\n• Backup protocol channels\n• Regular status checkpoints\n• Stakeholder alignment validation")
+
+        with tab4:
+            st.markdown(
+                f"""
+                <div class="report">
+                {result.replace(chr(10), "<br>")}
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
-        with dl2:
-            pdf_bytes = create_pdf(result)
-            st.download_button(
-                "📥 Download PDF (.pdf)",
-                data=pdf_bytes,
-                file_name="businessops_report.pdf",
-                mime="application/pdf",
-                use_container_width=True,
-            )
-        with dl3:
-            docx_bytes = create_docx(result)
-            st.download_button(
-                "📥 Download Word (.docx)",
-                data=docx_bytes,
-                file_name="businessops_report.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=True,
-            )
+
+            st.write("")
+            dl1, dl2, dl3 = st.columns(3)
+            with dl1:
+                st.download_button(
+                    "📥 Download Text (.txt)",
+                    data=str(result),
+                    file_name="businessops_report.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                )
+            with dl2:
+                pdf_bytes = create_pdf(result)
+                st.download_button(
+                    "📥 Download PDF (.pdf)",
+                    data=pdf_bytes,
+                    file_name="businessops_report.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
+            with dl3:
+                docx_bytes = create_docx(result)
+                st.download_button(
+                    "📥 Download Word (.docx)",
+                    data=docx_bytes,
+                    file_name="businessops_report.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True,
+                )
 
 
 # ============================================================
