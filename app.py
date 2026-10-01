@@ -52,205 +52,767 @@ MODEL = "openai/gpt-oss-20b"
 
 
 # ============================================================
-# CUSTOM CSS
+# PREMIUM UI
 # ============================================================
 
 st.markdown(
     """
     <style>
 
+    /* ======================================================
+       GLOBAL
+       ====================================================== */
+
     .stApp {
         background:
             radial-gradient(
-                circle at 10% 10%,
-                rgba(0, 229, 255, 0.08),
+                circle at 8% 5%,
+                rgba(0, 229, 255, 0.13),
+                transparent 27%
+            ),
+            radial-gradient(
+                circle at 92% 8%,
+                rgba(139, 92, 246, 0.16),
                 transparent 30%
             ),
             radial-gradient(
-                circle at 90% 20%,
-                rgba(139, 92, 246, 0.08),
-                transparent 30%
+                circle at 50% 100%,
+                rgba(236, 72, 153, 0.07),
+                transparent 32%
             ),
-            #070b12;
-        color: #f4f7fb;
+            #05080f;
+
+        color: #f7f9fc;
     }
+
+    .main .block-container {
+        max-width: 1500px;
+        padding-top: 1.8rem;
+        padding-bottom: 3rem;
+    }
+
+    /* ======================================================
+       REMOVE DEFAULT STREAMLIT UI
+       ====================================================== */
+
+    #MainMenu {
+        visibility: hidden;
+    }
+
+    footer {
+        visibility: hidden;
+    }
+
+    header {
+        background: transparent !important;
+    }
+
+    [data-testid="stHeader"] {
+        background: transparent !important;
+    }
+
+    /* ======================================================
+       SIDEBAR
+       ====================================================== */
 
     section[data-testid="stSidebar"] {
-        background: #090e17;
-        border-right: 1px solid #1c2635;
+        background:
+            linear-gradient(
+                180deg,
+                #080d17 0%,
+                #060a12 100%
+            );
+
+        border-right: 1px solid rgba(255,255,255,0.07);
     }
 
-    .hero {
-        padding: 35px 10px 25px 10px;
+    section[data-testid="stSidebar"] > div {
+        padding-top: 1.5rem;
     }
 
-    .badge {
-        display: inline-block;
-        padding: 7px 13px;
-        border-radius: 30px;
-        border: 1px solid #1e90a8;
-        background: rgba(0, 229, 255, 0.08);
-        color: #62eaff;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 1px;
+    .side-brand {
+        padding: 16px 14px 20px 14px;
     }
 
-    .hero-title {
-        font-size: 48px;
-        margin: 15px 0 8px 0;
-        font-weight: 800;
+    .side-logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 21px;
+        font-weight: 900;
+
         color: #ffffff;
+
+        background:
+            linear-gradient(
+                135deg,
+                #00e5ff,
+                #7c3aed 55%,
+                #ec4899
+            );
+
+        box-shadow:
+            0 10px 35px rgba(0,229,255,0.18);
     }
 
-    .hero-text {
-        color: #9ba8b8;
-        font-size: 17px;
-        max-width: 900px;
+    .side-title {
+        margin-top: 13px;
+        font-size: 21px;
+        font-weight: 850;
+        color: #ffffff;
+        letter-spacing: -0.4px;
+    }
+
+    .side-subtitle {
+        margin-top: 5px;
+        color: #7f8da1;
+        font-size: 11px;
         line-height: 1.6;
     }
 
+    .side-status {
+        margin-top: 18px;
+        padding: 12px 13px;
+        border-radius: 12px;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(0,229,255,0.07),
+                rgba(124,58,237,0.08)
+            );
+
+        border: 1px solid rgba(0,229,255,0.14);
+    }
+
+    .side-status-label {
+        color: #718096;
+        font-size: 9px;
+        letter-spacing: 1.3px;
+        font-weight: 800;
+    }
+
+    .side-status-value {
+        color: #67e8f9;
+        font-size: 13px;
+        font-weight: 750;
+        margin-top: 5px;
+    }
+
+    .side-mini {
+        color: #64748b;
+        font-size: 10px;
+        margin-top: 14px;
+        line-height: 1.6;
+    }
+
+    /* ======================================================
+       HERO
+       ====================================================== */
+
+    .hero-wrap {
+        position: relative;
+        overflow: hidden;
+
+        padding: 48px 48px 44px 48px;
+
+        border-radius: 28px;
+
+        background:
+            radial-gradient(
+                circle at 80% 10%,
+                rgba(124,58,237,0.24),
+                transparent 35%
+            ),
+            radial-gradient(
+                circle at 15% 80%,
+                rgba(0,229,255,0.13),
+                transparent 35%
+            ),
+            linear-gradient(
+                135deg,
+                rgba(13,22,37,0.97),
+                rgba(8,13,24,0.97)
+            );
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        box-shadow:
+            0 25px 80px rgba(0,0,0,0.32);
+
+        margin-bottom: 30px;
+    }
+
+    .hero-wrap::after {
+        content: "";
+
+        position: absolute;
+
+        width: 260px;
+        height: 260px;
+
+        right: -100px;
+        bottom: -130px;
+
+        border-radius: 50%;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(0,229,255,0.12),
+                rgba(236,72,153,0.12)
+            );
+
+        filter: blur(20px);
+    }
+
+    .hero-top {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+
+        padding: 7px 12px;
+
+        border-radius: 30px;
+
+        background:
+            linear-gradient(
+                90deg,
+                rgba(0,229,255,0.09),
+                rgba(124,58,237,0.10)
+            );
+
+        border: 1px solid rgba(0,229,255,0.20);
+
+        color: #67e8f9;
+
+        font-size: 10px;
+        font-weight: 850;
+        letter-spacing: 1.5px;
+    }
+
+    .hero-title {
+        margin-top: 17px;
+
+        font-size: clamp(42px, 6vw, 72px);
+
+        line-height: 0.98;
+
+        font-weight: 900;
+
+        letter-spacing: -3px;
+
+        background:
+            linear-gradient(
+                100deg,
+                #ffffff 5%,
+                #dffaff 38%,
+                #8be9ff 62%,
+                #b9a3ff 88%
+            );
+
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+        margin-top: 17px;
+
+        max-width: 850px;
+
+        color: #9aa8ba;
+
+        font-size: 16px;
+
+        line-height: 1.75;
+    }
+
+    .hero-line {
+        width: 125px;
+        height: 3px;
+
+        margin-top: 25px;
+
+        border-radius: 20px;
+
+        background:
+            linear-gradient(
+                90deg,
+                #00e5ff,
+                #7c3aed,
+                #ec4899
+            );
+    }
+
+    /* ======================================================
+       SECTION TITLES
+       ====================================================== */
+
+    .section-title {
+        color: #f8fafc;
+        font-size: 23px;
+        font-weight: 850;
+        letter-spacing: -0.5px;
+        margin-top: 25px;
+        margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+        color: #718096;
+        font-size: 12px;
+        margin-bottom: 18px;
+    }
+
+    /* ======================================================
+       WORKFLOW CARDS
+       ====================================================== */
+
     .stage {
-        background: linear-gradient(
-            145deg,
-            rgba(18, 27, 40, 0.98),
-            rgba(9, 15, 24, 0.98)
-        );
-        border: 1px solid #1d2a3b;
-        border-radius: 15px;
-        padding: 20px;
-        min-height: 155px;
+        position: relative;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(16,25,40,0.98),
+                rgba(8,14,24,0.98)
+            );
+
+        border: 1px solid rgba(255,255,255,0.075);
+
+        border-radius: 18px;
+
+        padding: 21px;
+
+        min-height: 176px;
+
         margin-bottom: 12px;
-        box-sizing: border-box;
+
+        transition:
+            transform 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .stage:hover {
+        transform: translateY(-3px);
+
+        border-color:
+            rgba(0,229,255,0.28);
+
+        box-shadow:
+            0 18px 45px rgba(0,0,0,0.22);
     }
 
     .stage-number {
-        color: #61eaff;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 1px;
+        color: #67e8f9;
+
+        font-size: 10px;
+
+        font-weight: 850;
+
+        letter-spacing: 1.4px;
     }
 
     .stage-title {
         color: #ffffff;
-        font-size: 18px;
-        font-weight: 750;
-        margin-top: 10px;
+
+        font-size: 17px;
+
+        font-weight: 800;
+
+        margin-top: 11px;
+
+        letter-spacing: -0.2px;
     }
 
     .stage-text {
-        color: #8f9dad;
-        font-size: 13px;
-        margin-top: 10px;
-        line-height: 1.55;
+        color: #7f8da1;
+
+        font-size: 12px;
+
+        margin-top: 9px;
+
+        line-height: 1.65;
     }
 
+    .stage-dot {
+        position: absolute;
+
+        top: 20px;
+        right: 20px;
+
+        width: 8px;
+        height: 8px;
+
+        border-radius: 50%;
+
+        background: #00e5ff;
+
+        box-shadow:
+            0 0 15px rgba(0,229,255,0.8);
+    }
+
+    /* ======================================================
+       METRICS
+       ====================================================== */
+
     .metric-card {
-        background: #0c131e;
-        border: 1px solid #1c2939;
-        border-radius: 14px;
+        background:
+            linear-gradient(
+                145deg,
+                rgba(14,22,35,0.96),
+                rgba(8,13,23,0.96)
+            );
+
+        border: 1px solid rgba(255,255,255,0.065);
+
+        border-radius: 16px;
+
         padding: 18px;
-        text-align: center;
-        min-height: 95px;
+
+        min-height: 105px;
+
+        box-shadow:
+            0 12px 30px rgba(0,0,0,0.12);
     }
 
     .metric-label {
-        color: #7e8b9b;
-        font-size: 11px;
-        letter-spacing: 1px;
+        color: #6f7d90;
+
+        font-size: 9px;
+
+        font-weight: 800;
+
+        letter-spacing: 1.4px;
     }
 
     .metric-value {
         color: #ffffff;
-        font-size: 26px;
-        font-weight: 800;
-        margin-top: 5px;
+
+        font-size: 27px;
+
+        font-weight: 850;
+
+        margin-top: 8px;
+
+        letter-spacing: -0.7px;
     }
 
-    .report-box {
-        background: #0b121c;
-        border: 1px solid #203044;
-        border-radius: 16px;
-        padding: 25px;
-        line-height: 1.7;
+    .metric-accent {
+        color: #67e8f9;
     }
+
+    /* ======================================================
+       FEATURE CARDS
+       ====================================================== */
 
     .feature-card {
-        background: linear-gradient(
-            145deg,
-            #0d1622,
-            #09111b
-        );
-        border: 1px solid #1e3044;
-        border-radius: 14px;
-        padding: 18px;
-        min-height: 125px;
+        position: relative;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(14,23,38,0.98),
+                rgba(8,14,24,0.98)
+            );
+
+        border: 1px solid rgba(255,255,255,0.07);
+
+        border-radius: 18px;
+
+        padding: 21px;
+
+        min-height: 160px;
+
+        margin-bottom: 14px;
+
+        transition:
+            transform 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+
+        border-color:
+            rgba(139,92,246,0.32);
+
+        box-shadow:
+            0 18px 45px rgba(0,0,0,0.22);
+    }
+
+    .feature-icon {
+        width: 38px;
+        height: 38px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 11px;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(0,229,255,0.12),
+                rgba(124,58,237,0.15)
+            );
+
+        border: 1px solid rgba(0,229,255,0.13);
+
+        font-size: 18px;
+
+        margin-bottom: 13px;
     }
 
     .feature-title {
         color: #ffffff;
-        font-size: 15px;
-        font-weight: 750;
+
+        font-size: 14px;
+
+        font-weight: 800;
+
         margin-bottom: 7px;
     }
 
     .feature-text {
-        color: #8493a5;
-        font-size: 12px;
-        line-height: 1.5;
+        color: #7d8b9e;
+
+        font-size: 11px;
+
+        line-height: 1.65;
     }
 
+    /* ======================================================
+       REPORT AREA
+       ====================================================== */
+
+    .report-header {
+        padding: 20px 22px;
+
+        border-radius: 16px;
+
+        background:
+            linear-gradient(
+                100deg,
+                rgba(0,229,255,0.07),
+                rgba(124,58,237,0.08)
+            );
+
+        border: 1px solid rgba(255,255,255,0.07);
+
+        margin-bottom: 16px;
+    }
+
+    .report-header-title {
+        color: #ffffff;
+
+        font-size: 17px;
+
+        font-weight: 800;
+    }
+
+    .report-header-subtitle {
+        color: #718096;
+
+        font-size: 11px;
+
+        margin-top: 5px;
+    }
+
+    .report-box {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(10,17,29,0.98),
+                rgba(7,12,21,0.98)
+            );
+
+        border: 1px solid rgba(255,255,255,0.07);
+
+        border-radius: 18px;
+
+        padding: 24px;
+
+        line-height: 1.75;
+    }
+
+    /* ======================================================
+       STATUS
+       ====================================================== */
+
     .status-card {
-        background: #0c131e;
-        border: 1px solid #1d2b3d;
+        background:
+            rgba(10,18,29,0.96);
+
+        border: 1px solid rgba(0,229,255,0.11);
+
         border-radius: 12px;
-        padding: 14px;
+
+        padding: 13px 9px;
+
         text-align: center;
     }
 
     .status-title {
-        color: #7d8b9d;
-        font-size: 10px;
-        letter-spacing: 1px;
-    }
+        color: #68778b;
 
-    .status-value {
-        color: #61eaff;
-        font-size: 15px;
-        font-weight: 700;
-        margin-top: 5px;
-    }
+        font-size: 8px;
 
-    .roadmap-card {
-        background: #0c131e;
-        border-left: 3px solid #61eaff;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 10px;
-    }
+        letter-spacing: 1.1px;
 
-    .sidebar-title {
-        color: #ffffff;
-        font-size: 21px;
         font-weight: 800;
     }
 
-    .sidebar-subtitle {
-        color: #7f8c9d;
-        font-size: 12px;
-        line-height: 1.5;
+    .status-value {
+        color: #67e8f9;
+
+        font-size: 11px;
+
+        font-weight: 750;
+
+        margin-top: 6px;
     }
 
+    /* ======================================================
+       TABS
+       ====================================================== */
+
+    button[data-baseweb="tab"] {
+        color: #718096 !important;
+        font-weight: 700 !important;
+    }
+
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #67e8f9 !important;
+    }
+
+    div[data-baseweb="tab-highlight"] {
+        background:
+            linear-gradient(
+                90deg,
+                #00e5ff,
+                #7c3aed
+            ) !important;
+    }
+
+    /* ======================================================
+       INPUTS
+       ====================================================== */
+
+    textarea,
+    input {
+        background: #0a111c !important;
+        color: #f8fafc !important;
+
+        border: 1px solid #1d2b3c !important;
+
+        border-radius: 12px !important;
+    }
+
+    textarea:focus,
+    input:focus {
+        border-color: #00e5ff !important;
+
+        box-shadow:
+            0 0 0 1px rgba(0,229,255,0.18) !important;
+    }
+
+    div[data-baseweb="select"] > div {
+        background: #0a111c !important;
+
+        border-color: #1d2b3c !important;
+
+        border-radius: 11px !important;
+    }
+
+    /* ======================================================
+       BUTTONS
+       ====================================================== */
+
     div.stButton > button {
-        border-radius: 10px;
+        border-radius: 12px;
+
+        min-height: 46px;
+
+        font-weight: 800;
+
+        border: 1px solid rgba(0,229,255,0.18);
+
+        background:
+            linear-gradient(
+                100deg,
+                #00a8c7,
+                #6841d9
+            );
+
+        color: white;
+
+        box-shadow:
+            0 10px 30px rgba(0,0,0,0.20);
+
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    div.stButton > button:hover {
+        transform: translateY(-2px);
+
+        box-shadow:
+            0 14px 38px rgba(0,229,255,0.16);
+    }
+
+    div[data-testid="stDownloadButton"] button {
+        border-radius: 11px;
+
+        background: #0c1420;
+
+        border: 1px solid #1c2b3d;
+
+        color: #dce5ef;
+
         font-weight: 700;
     }
 
+    /* ======================================================
+       EXPANDER
+       ====================================================== */
+
+    div[data-testid="stExpander"] {
+        background: #09111b;
+
+        border: 1px solid #1a2939;
+
+        border-radius: 13px;
+    }
+
+    /* ======================================================
+       DIVIDER
+       ====================================================== */
+
+    hr {
+        border-color: rgba(255,255,255,0.06) !important;
+    }
+
+    /* ======================================================
+       FOOTER
+       ====================================================== */
+
     .footer {
         text-align: center;
-        color: #667386;
-        font-size: 12px;
-        padding: 10px;
+
+        color: #566477;
+
+        font-size: 10px;
+
+        padding: 18px;
     }
 
     </style>
@@ -295,12 +857,14 @@ def split_report_sections(report_text):
         if line.startswith("## "):
 
             if current_content:
+
                 sections[current_title] = "\n".join(
                     current_content
                 ).strip()
 
             current_title = line.replace(
-                "## ", ""
+                "## ",
+                ""
             ).strip()
 
             current_content = []
@@ -308,12 +872,14 @@ def split_report_sections(report_text):
         elif line.startswith("# "):
 
             if current_content:
+
                 sections[current_title] = "\n".join(
                     current_content
                 ).strip()
 
             current_title = line.replace(
-                "# ", ""
+                "# ",
+                ""
             ).strip()
 
             current_content = []
@@ -323,6 +889,7 @@ def split_report_sections(report_text):
             current_content.append(line)
 
     if current_content:
+
         sections[current_title] = "\n".join(
             current_content
         ).strip()
@@ -342,7 +909,9 @@ def count_bullets(text):
         [
             line
             for line in text.splitlines()
-            if line.strip().startswith(("-", "•", "*"))
+            if line.strip().startswith(
+                ("-", "•", "*")
+            )
         ]
     )
 
@@ -1006,62 +1575,39 @@ with st.sidebar:
 
     st.html(
         """
-        <div class="sidebar-title">
-            ⚡ BusinessOps AI
+        <div class="side-brand">
+
+            <div class="side-logo">
+                ⚡
+            </div>
+
+            <div class="side-title">
+                BusinessOps AI
+            </div>
+
+            <div class="side-subtitle">
+                Autonomous Business Process Intelligence
+            </div>
+
+            <div class="side-status">
+
+                <div class="side-status-label">
+                    SYSTEM STATUS
+                </div>
+
+                <div class="side-status-value">
+                    ● AI ENGINE READY
+                </div>
+
+            </div>
+
+            <div class="side-mini">
+                CrewAI Flow · Groq Intelligence ·
+                Streamlit Cloud
+            </div>
+
         </div>
-
-        <div class="sidebar-subtitle">
-            Autonomous Business Process Intelligence Platform
-        </div>
         """
-    )
-
-    st.divider()
-
-    st.markdown("### Technology")
-
-    st.write("🐍 Python")
-    st.write("🎨 Streamlit")
-    st.write("🤖 CrewAI Flow")
-    st.write("⚡ Groq API")
-    st.write("🧠 GPT-OSS 20B")
-    st.write("☁️ Streamlit Cloud")
-
-    st.divider()
-
-    st.markdown("### Intelligence Modules")
-
-    st.write("✓ Business Analysis")
-    st.write("✓ Department Impact")
-    st.write("✓ Risk Register")
-    st.write("✓ Priority Matrix")
-    st.write("✓ Action Planning")
-    st.write("✓ KPI Design")
-    st.write("✓ 30/60/90 Roadmap")
-    st.write("✓ QA Audit")
-
-    st.divider()
-
-    st.markdown("### Architecture")
-
-    st.markdown(
-        """
-        **Single Groq generation + multi-stage CrewAI Flow**
-
-        The workflow contains multiple business intelligence
-        stages while keeping the actual LLM generation to
-        one primary request per run.
-        """
-    )
-
-    st.divider()
-
-    st.caption(
-        "Free-tier friendly architecture"
-    )
-
-    st.caption(
-        "No Ollama • No local model • No paid database"
     )
 
 
@@ -1071,22 +1617,24 @@ with st.sidebar:
 
 st.html(
     """
-    <div class="hero">
+    <div class="hero-wrap">
 
-        <span class="badge">
-            AUTONOMOUS BUSINESS INTELLIGENCE
-        </span>
+        <div class="hero-top">
+            ⚡ AUTONOMOUS BUSINESS INTELLIGENCE
+        </div>
 
         <div class="hero-title">
             BusinessOps AI
         </div>
 
-        <div class="hero-text">
+        <div class="hero-subtitle">
             Transform complex business requests into
             structured operational plans, risk controls,
-            priority actions, department responsibilities,
-            implementation roadmaps, and measurable outcomes.
+            priority actions, implementation roadmaps,
+            and measurable business outcomes.
         </div>
+
+        <div class="hero-line"></div>
 
     </div>
     """
@@ -1098,11 +1646,13 @@ st.html(
 # ============================================================
 
 st.markdown(
-    "### Agentic Workflow"
+    '<div class="section-title">Agentic Workflow</div>',
+    unsafe_allow_html=True,
 )
 
-st.caption(
-    "Multi-stage CrewAI workflow with one primary Groq generation per run."
+st.markdown(
+    '<div class="section-subtitle">Six coordinated intelligence stages powering every business analysis.</div>',
+    unsafe_allow_html=True,
 )
 
 
@@ -1161,6 +1711,8 @@ for i, (
             f"""
             <div class="stage">
 
+                <div class="stage-dot"></div>
+
                 <div class="stage-number">
                     {number} / 06
                 </div>
@@ -1194,11 +1746,12 @@ with m1:
         <div class="metric-card">
 
             <div class="metric-label">
-                WORKFLOW STAGES
+                WORKFLOW
             </div>
 
             <div class="metric-value">
-                06
+                <span class="metric-accent">06</span>
+                stages
             </div>
 
         </div>
@@ -1213,11 +1766,12 @@ with m2:
         <div class="metric-card">
 
             <div class="metric-label">
-                LLM CALLS / RUN
+                AI GENERATION
             </div>
 
             <div class="metric-value">
-                01
+                <span class="metric-accent">01</span>
+                call
             </div>
 
         </div>
@@ -1232,11 +1786,12 @@ with m3:
         <div class="metric-card">
 
             <div class="metric-label">
-                AI MODULES
+                INTELLIGENCE
             </div>
 
             <div class="metric-value">
-                08+
+                <span class="metric-accent">08+</span>
+                modules
             </div>
 
         </div>
@@ -1255,7 +1810,7 @@ with m4:
             </div>
 
             <div class="metric-value">
-                CLOUD
+                <span class="metric-accent">CLOUD</span>
             </div>
 
         </div>
@@ -1270,7 +1825,13 @@ with m4:
 st.write("")
 
 st.markdown(
-    "### Business Request"
+    '<div class="section-title">Business Request</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    '<div class="section-subtitle">Describe a real operational challenge and let the intelligence workflow structure it.</div>',
+    unsafe_allow_html=True,
 )
 
 
@@ -1394,10 +1955,6 @@ if st.button(
 
     else:
 
-        # ----------------------------------------------------
-        # WORKFLOW EXECUTION
-        # ----------------------------------------------------
-
         with st.spinner(
             "BusinessOps AI is analyzing the request, "
             "planning operations, evaluating risks and "
@@ -1420,10 +1977,6 @@ if st.button(
                 )
 
 
-        # ----------------------------------------------------
-        # STORE RESULT
-        # ----------------------------------------------------
-
         st.session_state["businessops_result"] = result
         st.session_state["businessops_request"] = request
 
@@ -1445,21 +1998,32 @@ if "businessops_result" in st.session_state:
 
 
     # ========================================================
-    # SUCCESS
+    # REPORT HEADER
     # ========================================================
 
-    st.success(
-        "Business workflow completed successfully."
+    st.write("")
+
+    st.html(
+        """
+        <div class="report-header">
+
+            <div class="report-header-title">
+                Business Intelligence Report
+            </div>
+
+            <div class="report-header-subtitle">
+                AI-generated operational analysis, risk intelligence,
+                action planning and implementation guidance.
+            </div>
+
+        </div>
+        """
     )
 
 
     # ========================================================
     # EXECUTION STATUS
     # ========================================================
-
-    st.markdown(
-        "### Workflow Status"
-    )
 
     s1, s2, s3, s4, s5, s6 = st.columns(6)
 
@@ -1544,12 +2108,10 @@ if "businessops_result" in st.session_state:
 
 
     # ========================================================
-    # REPORT OVERVIEW
+    # REPORT METRICS
     # ========================================================
 
-    st.markdown(
-        "### Intelligence Overview"
-    )
+    st.write("")
 
     o1, o2, o3, o4 = st.columns(4)
 
@@ -1565,7 +2127,9 @@ if "businessops_result" in st.session_state:
                 </div>
 
                 <div class="metric-value">
-                    {action_count if action_count else "—"}
+                    <span class="metric-accent">
+                        {action_count if action_count else "—"}
+                    </span>
                 </div>
 
             </div>
@@ -1584,7 +2148,9 @@ if "businessops_result" in st.session_state:
                 </div>
 
                 <div class="metric-value">
-                    {risk_count if risk_count else "—"}
+                    <span class="metric-accent">
+                        {risk_count if risk_count else "—"}
+                    </span>
                 </div>
 
             </div>
@@ -1603,7 +2169,9 @@ if "businessops_result" in st.session_state:
                 </div>
 
                 <div class="metric-value">
-                    {gap_count if gap_count else "—"}
+                    <span class="metric-accent">
+                        {gap_count if gap_count else "—"}
+                    </span>
                 </div>
 
             </div>
@@ -1618,11 +2186,13 @@ if "businessops_result" in st.session_state:
             <div class="metric-card">
 
                 <div class="metric-label">
-                    LLM GENERATIONS
+                    AI GENERATIONS
                 </div>
 
                 <div class="metric-value">
-                    01
+                    <span class="metric-accent">
+                        01
+                    </span>
                 </div>
 
             </div>
@@ -1634,13 +2204,22 @@ if "businessops_result" in st.session_state:
     # REPORT TABS
     # ========================================================
 
+    st.write("")
+
     st.markdown(
-        "### Business Intelligence Report"
+        '<div class="section-title">Intelligence Report</div>',
+        unsafe_allow_html=True,
     )
+
+    st.markdown(
+        '<div class="section-subtitle">Explore the generated analysis by operational area.</div>',
+        unsafe_allow_html=True,
+    )
+
 
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
         [
-            "📊 Executive View",
+            "📊 Executive",
             "⚙️ Operations",
             "⚠️ Risk & Priority",
             "🚀 Roadmap",
@@ -1651,55 +2230,45 @@ if "businessops_result" in st.session_state:
 
 
     # ========================================================
-    # TAB 1 — EXECUTIVE VIEW
+    # TAB 1 — EXECUTIVE
     # ========================================================
 
     with tab1:
 
-        st.markdown(
-            '<div class="report-box">',
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
 
-        executive = sections.get(
-            "Executive Summary",
-            "Executive summary was not returned."
-        )
-
-        st.markdown(
-            "#### Executive Summary"
-        )
-
-        st.markdown(
-            executive
-        )
-
-        st.markdown(
-            "#### Department Impact"
-        )
-
-        st.markdown(
-            sections.get(
-                "Department Impact",
-                "No department impact information returned."
+            st.markdown(
+                "#### Executive Summary"
             )
-        )
 
-        st.markdown(
-            "#### Information Gaps"
-        )
-
-        st.markdown(
-            sections.get(
-                "Information Gaps",
-                "No information gaps returned."
+            st.markdown(
+                sections.get(
+                    "Executive Summary",
+                    "Executive summary was not returned."
+                )
             )
-        )
 
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True,
-        )
+            st.markdown(
+                "#### Department Impact"
+            )
+
+            st.markdown(
+                sections.get(
+                    "Department Impact",
+                    "No department impact information returned."
+                )
+            )
+
+            st.markdown(
+                "#### Information Gaps"
+            )
+
+            st.markdown(
+                sections.get(
+                    "Information Gaps",
+                    "No information gaps returned."
+                )
+            )
 
 
     # ========================================================
@@ -1708,37 +2277,31 @@ if "businessops_result" in st.session_state:
 
     with tab2:
 
-        st.markdown(
-            '<div class="report-box">',
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
 
-        st.markdown(
-            "#### Recommended Workflow"
-        )
-
-        st.markdown(
-            sections.get(
-                "Recommended Workflow",
-                "No workflow returned."
+            st.markdown(
+                "#### Recommended Workflow"
             )
-        )
 
-        st.markdown(
-            "#### Process Canvas"
-        )
-
-        st.markdown(
-            sections.get(
-                "Process Canvas",
-                "No process canvas returned."
+            st.markdown(
+                sections.get(
+                    "Recommended Workflow",
+                    "No workflow returned."
+                )
             )
-        )
 
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True,
-        )
+            st.divider()
+
+            st.markdown(
+                "#### Process Canvas"
+            )
+
+            st.markdown(
+                sections.get(
+                    "Process Canvas",
+                    "No process canvas returned."
+                )
+            )
 
 
     # ========================================================
@@ -1747,50 +2310,44 @@ if "businessops_result" in st.session_state:
 
     with tab3:
 
-        st.markdown(
-            '<div class="report-box">',
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
 
-        st.markdown(
-            "#### Priority Matrix"
-        )
-
-        st.markdown(
-            sections.get(
-                "Priority Matrix",
-                "No priority matrix returned."
+            st.markdown(
+                "#### Priority Matrix"
             )
-        )
 
-        st.divider()
-
-        st.markdown(
-            "#### Risk Register"
-        )
-
-        st.markdown(
-            sections.get(
-                "Risk Register",
-                "No risk register returned."
+            st.markdown(
+                sections.get(
+                    "Priority Matrix",
+                    "No priority matrix returned."
+                )
             )
-        )
 
-        st.markdown(
-            "#### Priority Actions"
-        )
+            st.divider()
 
-        st.markdown(
-            sections.get(
-                "Priority Actions",
-                "No priority actions returned."
+            st.markdown(
+                "#### Risk Register"
             )
-        )
 
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True,
-        )
+            st.markdown(
+                sections.get(
+                    "Risk Register",
+                    "No risk register returned."
+                )
+            )
+
+            st.divider()
+
+            st.markdown(
+                "#### Priority Actions"
+            )
+
+            st.markdown(
+                sections.get(
+                    "Priority Actions",
+                    "No priority actions returned."
+                )
+            )
 
 
     # ========================================================
@@ -1799,28 +2356,20 @@ if "businessops_result" in st.session_state:
 
     with tab4:
 
-        st.markdown(
-            '<div class="report-box">',
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
 
-        st.markdown(
-            "#### 30 / 60 / 90 Day Roadmap"
-        )
+            st.markdown(
+                "#### 30 / 60 / 90 Day Roadmap"
+            )
 
-        roadmap = sections.get(
-            "30/60/90 Day Roadmap",
-            "No roadmap returned."
-        )
+            roadmap = sections.get(
+                "30/60/90 Day Roadmap",
+                "No roadmap returned."
+            )
 
-        st.markdown(
-            roadmap
-        )
-
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True,
-        )
+            st.markdown(
+                roadmap
+            )
 
 
     # ========================================================
@@ -1829,39 +2378,31 @@ if "businessops_result" in st.session_state:
 
     with tab5:
 
-        st.markdown(
-            '<div class="report-box">',
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
 
-        st.markdown(
-            "#### KPIs / Success Metrics"
-        )
-
-        st.markdown(
-            sections.get(
-                "KPIs / Success Metrics",
-                "No KPI information returned."
+            st.markdown(
+                "#### KPIs / Success Metrics"
             )
-        )
 
-        st.divider()
-
-        st.markdown(
-            "#### AI QA Audit"
-        )
-
-        st.markdown(
-            sections.get(
-                "QA Audit",
-                "No QA audit returned."
+            st.markdown(
+                sections.get(
+                    "KPIs / Success Metrics",
+                    "No KPI information returned."
+                )
             )
-        )
 
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True,
-        )
+            st.divider()
+
+            st.markdown(
+                "#### AI QA Audit"
+            )
+
+            st.markdown(
+                sections.get(
+                    "QA Audit",
+                    "No QA audit returned."
+                )
+            )
 
 
     # ========================================================
@@ -1870,32 +2411,27 @@ if "businessops_result" in st.session_state:
 
     with tab6:
 
-        st.markdown(
-            '<div class="report-box">',
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
 
-        st.markdown(
-            result
-        )
-
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True,
-        )
+            st.markdown(
+                result
+            )
 
 
     # ========================================================
     # DOWNLOAD REPORTS
     # ========================================================
 
+    st.write("")
+
     st.markdown(
-        "### Export Business Report"
+        '<div class="section-title">Export</div>',
+        unsafe_allow_html=True,
     )
 
-    st.caption(
-        "Download the generated intelligence report for "
-        "sharing, documentation or presentation."
+    st.markdown(
+        '<div class="section-subtitle">Save the generated intelligence report for documentation or presentation.</div>',
+        unsafe_allow_html=True,
     )
 
 
@@ -1910,10 +2446,6 @@ if "businessops_result" in st.session_state:
 
     d1, d2, d3 = st.columns(3)
 
-
-    # --------------------------------------------------------
-    # TXT
-    # --------------------------------------------------------
 
     with d1:
 
@@ -1932,10 +2464,6 @@ if "businessops_result" in st.session_state:
         )
 
 
-    # --------------------------------------------------------
-    # PDF
-    # --------------------------------------------------------
-
     with d2:
 
         st.download_button(
@@ -1952,10 +2480,6 @@ if "businessops_result" in st.session_state:
 
         )
 
-
-    # --------------------------------------------------------
-    # DOCX
-    # --------------------------------------------------------
 
     with d3:
 
@@ -1997,7 +2521,13 @@ if "businessops_result" in st.session_state:
 st.write("")
 
 st.markdown(
-    "### Business Intelligence Capabilities"
+    '<div class="section-title">Business Intelligence Capabilities</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    '<div class="section-subtitle">Core intelligence capabilities available in the BusinessOps workflow.</div>',
+    unsafe_allow_html=True,
 )
 
 
@@ -2069,7 +2599,7 @@ for i, (
             f"""
             <div class="feature-card">
 
-                <div style="font-size:22px;">
+                <div class="feature-icon">
                     {icon}
                 </div>
 
@@ -2096,8 +2626,10 @@ st.html(
     """
     <div class="footer">
 
-        BusinessOps AI • Autonomous Business Process Intelligence
-        • CrewAI + Groq • Streamlit Cloud
+        BusinessOps AI
+        · Autonomous Business Process Intelligence
+        · CrewAI + Groq
+        · Streamlit Cloud
 
     </div>
     """
