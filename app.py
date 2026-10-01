@@ -27,7 +27,7 @@ MODEL = "openai/gpt-oss-20b"
 
 
 # ============================================================
-# PREMIUM CHARCOAL + DEEP MAROON THEME
+# PREMIUM CHARCOAL + DEEP MAROON THEME & UI STYLES
 # ============================================================
 
 st.markdown(
@@ -80,17 +80,75 @@ st.markdown(
 
 
     /* ======================================================
-       SIDEBAR
+       CUSTOM COMPONENTS (BADGE, HERO, STAGES, REPORT)
+       ====================================================== */
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        background: rgba(122, 34, 55, 0.25);
+        border: 1px solid rgba(177, 76, 101, 0.4);
+        border-radius: 20px;
+        color: #d98294;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+    }
+
+    .hero {
+        padding: 10px 0 20px 0;
+    }
+
+    .stage {
+        background: linear-gradient(145deg, rgba(20, 19, 23, 0.98), rgba(11, 12, 15, 0.98));
+        border: 1px solid rgba(255, 255, 255, 0.065);
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        height: 100%;
+    }
+
+    .stage-number {
+        font-size: 11px;
+        color: #8c334d;
+        font-weight: 750;
+        letter-spacing: 0.8px;
+        margin-bottom: 6px;
+    }
+
+    .stage-title {
+        font-size: 15px;
+        color: #f1f1ef;
+        font-weight: 750;
+        margin-bottom: 8px;
+    }
+
+    .stage-text {
+        font-size: 12px;
+        color: #969aa3;
+        line-height: 1.6;
+    }
+
+    .report {
+        background: linear-gradient(145deg, #0e1014, #0b0c10);
+        border: 1px solid #282b32;
+        border-radius: 14px;
+        padding: 25px;
+        color: #d7d7d4;
+        line-height: 1.7;
+        font-size: 13px;
+        box-shadow: 0 14px 35px rgba(0,0,0,0.2);
+    }
+
+
+    /* ======================================================
+       SIDEBAR & TYPOGRAPHY
        ====================================================== */
 
     section[data-testid="stSidebar"] {
-        background:
-            linear-gradient(
-                180deg,
-                #0d0e11 0%,
-                #090a0d 55%,
-                #07080a 100%
-            );
+        background: linear-gradient(180deg, #0d0e11 0%, #090a0d 55%, #07080a 100%);
         border-right: 1px solid rgba(255, 255, 255, 0.065);
         box-shadow: 8px 0 35px rgba(0, 0, 0, 0.18);
     }
@@ -99,357 +157,60 @@ st.markdown(
         padding-top: 0.9rem;
     }
 
-    section[data-testid="stSidebar"] p {
-        color: #969aa3;
-        line-height: 1.65;
-    }
-
-    section[data-testid="stSidebar"] h3 {
-        color: #f1f1ef !important;
-        letter-spacing: -0.4px;
-    }
-
-
-    /* ======================================================
-       TYPOGRAPHY
-       ====================================================== */
-
     h1 {
         color: #f5f4f1 !important;
         font-weight: 900 !important;
         letter-spacing: -1.8px !important;
     }
 
-    h2 {
-        color: #eeeDEA !important;
-        font-weight: 850 !important;
-        letter-spacing: -0.8px !important;
-    }
-
     h3 {
         color: #e5e3df !important;
         font-weight: 750 !important;
-        letter-spacing: -0.3px !important;
     }
 
-    p {
+    p, li {
         color: #c8c9cc;
         line-height: 1.75;
     }
 
-    li {
-        color: #c8c9cc;
-        line-height: 1.7;
-    }
-
-    strong {
-        color: #f0efec;
-    }
-
-    small {
-        color: #858992;
-    }
-
 
     /* ======================================================
-       CAPTIONS / LABELS
+       INPUTS & BUTTONS
        ====================================================== */
 
-    [data-testid="stCaptionContainer"] {
-        color: #858a94 !important;
-    }
-
-    label {
-        color: #a9adb5 !important;
-        font-size: 11px !important;
-        font-weight: 650 !important;
-    }
-
-
-    /* ======================================================
-       CARDS / CONTAINERS
-       ====================================================== */
-
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(20, 19, 23, 0.98),
-                rgba(11, 12, 15, 0.98)
-            ) !important;
-
-        border: 1px solid rgba(255, 255, 255, 0.065) !important;
-        border-radius: 16px !important;
-
-        box-shadow:
-            0 14px 38px rgba(0, 0, 0, 0.20);
-    }
-
-
-    /* ======================================================
-       INPUTS
-       ====================================================== */
-
-    textarea,
-    input {
+    textarea, input {
         background: #0c0e12 !important;
         color: #f2f1ee !important;
         border: 1px solid #292c33 !important;
         border-radius: 10px !important;
         font-size: 13px !important;
-        line-height: 1.65 !important;
     }
-
-    textarea::placeholder,
-    input::placeholder {
-        color: #6f747d !important;
-        font-size: 12px !important;
-    }
-
-    textarea:focus,
-    input:focus {
-        border-color: #823249 !important;
-
-        box-shadow:
-            0 0 0 1px rgba(157, 58, 84, 0.18),
-            0 0 20px rgba(122, 34, 55, 0.08) !important;
-    }
-
-
-    /* ======================================================
-       SELECTBOX
-       ====================================================== */
-
-    div[data-baseweb="select"] > div {
-        background: #0c0e12 !important;
-        border-color: #292c33 !important;
-        border-radius: 10px !important;
-        min-height: 43px !important;
-    }
-
-    div[data-baseweb="select"] span {
-        font-size: 12px !important;
-        color: #ddddda !important;
-    }
-
-
-    /* ======================================================
-       BUTTONS
-       ====================================================== */
 
     div.stButton > button {
         min-height: 45px;
         border-radius: 10px;
-
         border: 1px solid rgba(177, 76, 101, 0.28);
-
-        background:
-            linear-gradient(
-                105deg,
-                #79283f 0%,
-                #612536 48%,
-                #49212d 100%
-            );
-
+        background: linear-gradient(105deg, #79283f 0%, #612536 48%, #49212d 100%);
         color: #ffffff;
         font-size: 12px;
         font-weight: 800;
-        letter-spacing: 0.1px;
-
-        box-shadow:
-            0 10px 28px rgba(0, 0, 0, 0.22);
-
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
         transition: all 0.2s ease;
     }
 
     div.stButton > button:hover {
-        border-color: rgba(210, 145, 160, 0.45);
-
-        background:
-            linear-gradient(
-                105deg,
-                #893149 0%,
-                #6c293b 50%,
-                #542532 100%
-            );
-
-        box-shadow:
-            0 12px 32px rgba(116, 34, 55, 0.20);
-
+        background: linear-gradient(105deg, #893149 0%, #6c293b 50%, #542532 100%);
         transform: translateY(-1px);
     }
-
-
-    /* ======================================================
-       DOWNLOAD BUTTONS
-       ====================================================== */
 
     div[data-testid="stDownloadButton"] button {
         min-height: 43px;
         border-radius: 10px;
-
-        background:
-            linear-gradient(
-                145deg,
-                #111318,
-                #0d0f13
-            );
-
+        background: linear-gradient(145deg, #111318, #0d0f13);
         border: 1px solid #292c34;
         color: #d9dadc;
         font-size: 11px;
         font-weight: 750;
-    }
-
-    div[data-testid="stDownloadButton"] button:hover {
-        border-color: #743047;
-        color: #eeeeee;
-        background: #13151a;
-    }
-
-
-    /* ======================================================
-       METRICS
-       ====================================================== */
-
-    div[data-testid="stMetric"] {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(255, 255, 255, 0.030),
-                rgba(255, 255, 255, 0.012)
-            );
-
-        border: 1px solid rgba(255, 255, 255, 0.055);
-        border-radius: 12px;
-        padding: 14px 15px;
-
-        box-shadow:
-            0 7px 20px rgba(0, 0, 0, 0.12);
-    }
-
-    div[data-testid="stMetricLabel"] {
-        font-size: 9px !important;
-        color: #777d87 !important;
-        font-weight: 750 !important;
-        letter-spacing: 0.6px;
-    }
-
-    div[data-testid="stMetricValue"] {
-        font-size: 20px !important;
-        color: #e5e4e1 !important;
-        font-weight: 800 !important;
-    }
-
-
-    /* ======================================================
-       TABS
-       ====================================================== */
-
-    button[data-baseweb="tab"] {
-        color: #777d87 !important;
-        font-size: 11px !important;
-        font-weight: 750 !important;
-    }
-
-    button[data-baseweb="tab"]:hover {
-        color: #b76a7f !important;
-    }
-
-    button[data-baseweb="tab"][aria-selected="true"] {
-        color: #c98294 !important;
-    }
-
-    div[data-baseweb="tab-highlight"] {
-        background: #8c334d !important;
-    }
-
-
-    /* ======================================================
-       EXPANDER
-       ====================================================== */
-
-    div[data-testid="stExpander"] {
-        background:
-            linear-gradient(
-                145deg,
-                #0e1014,
-                #0b0c10
-            );
-
-        border: 1px solid #282b32;
-        border-radius: 11px;
-    }
-
-    div[data-testid="stExpander"] summary {
-        color: #d7d7d4 !important;
-    }
-
-
-    /* ======================================================
-       ALERTS
-       ====================================================== */
-
-    div[data-testid="stAlert"] {
-        border-radius: 10px !important;
-    }
-
-
-    /* ======================================================
-       DIVIDERS
-       ====================================================== */
-
-    hr {
-        border-color: rgba(255, 255, 255, 0.055) !important;
-    }
-
-
-    /* ======================================================
-       SCROLLBAR
-       ====================================================== */
-
-    ::-webkit-scrollbar {
-        width: 7px;
-        height: 7px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: #08090c;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: #30252b;
-        border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: #663044;
-    }
-
-
-    /* ======================================================
-       MOBILE
-       ====================================================== */
-
-    @media (max-width: 900px) {
-
-        .main .block-container {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-
-        h1 {
-            font-size: 38px !important;
-        }
-
-        h2 {
-            font-size: 25px !important;
-        }
-
-        p,
-        li {
-            font-size: 13px !important;
-        }
     }
 
     </style>
@@ -473,7 +234,6 @@ class BusinessOpsFlow(Flow):
     @listen(intake)
     def business_analysis(self, data):
         request = data["request"]
-
         return {
             "request": request,
             "analysis": (
@@ -539,34 +299,19 @@ class BusinessOpsFlow(Flow):
         client = Groq(api_key=api_key)
 
         prompt = f"""
-You are BusinessOps AI, an autonomous business process intelligence
-assistant.
-
+You are BusinessOps AI, an autonomous business process intelligence assistant.
 Analyze this business request:
 
 {data["request"][:2500]}
 
 Internal workflow stages:
+1. Business Analysis: {data["analysis"]}
+2. Operations Planning: {data["operations"]}
+3. Risk Management: {data["risk"]}
+4. Action Planning: {data["actions"]}
+5. Quality Control: {data["qa"]}
 
-1. Business Analysis
-{data["analysis"]}
-
-2. Operations Planning
-{data["operations"]}
-
-3. Risk Management
-{data["risk"]}
-
-4. Action Planning
-{data["actions"]}
-
-5. Quality Control
-{data["qa"]}
-
-Generate a professional Business Operations Report.
-
-Use exactly these sections:
-
+Generate a professional Business Operations Report using exactly these sections:
 ## Executive Summary
 ## Business Analysis
 ## Recommended Workflow
@@ -584,17 +329,12 @@ Requirements:
 """
 
         try:
-
             response = client.chat.completions.create(
                 model=MODEL,
                 messages=[
                     {
                         "role": "system",
-                        "content": (
-                            "You are a professional business operations "
-                            "intelligence assistant. Produce concise, "
-                            "structured and actionable reports."
-                        ),
+                        "content": "You are a professional business operations intelligence assistant. Produce concise, structured and actionable reports.",
                     },
                     {
                         "role": "user",
@@ -607,54 +347,29 @@ Requirements:
             )
 
             result = response.choices[0].message.content
-
             if not result or not result.strip():
                 return "The AI returned an empty response. Please try again."
-
             return result.strip()
 
         except Exception as e:
-
             error_text = str(e).lower()
-
             if "rate limit" in error_text or "429" in error_text:
-
                 time.sleep(3)
-
                 try:
-
                     retry = client.chat.completions.create(
                         model=MODEL,
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": prompt,
-                            }
-                        ],
+                        messages=[{"role": "user", "content": prompt}],
                         temperature=0.1,
                         max_completion_tokens=600,
                         reasoning_effort="low",
                     )
-
                     retry_result = retry.choices[0].message.content
-
                     if retry_result and retry_result.strip():
                         return retry_result.strip()
-
                     return "Groq returned an empty response after retry."
-
                 except Exception as retry_error:
-
-                    return (
-                        "Groq rate limit is temporarily active. "
-                        "Please wait a few seconds and run again.\n\n"
-                        f"Technical detail: {retry_error}"
-                    )
-
-            return (
-                "BusinessOps AI could not complete the analysis.\n\n"
-                f"Technical detail: {e}"
-            )
+                    return f"Groq rate limit active. Technical detail: {retry_error}"
+            return f"BusinessOps AI could not complete analysis. Technical detail: {e}"
 
 
 # ============================================================
@@ -662,69 +377,29 @@ Requirements:
 # ============================================================
 
 with st.sidebar:
-
     st.markdown("## ⚡ BusinessOps AI")
-
-    st.markdown(
-        """
-        <div class="small-muted">
-        Autonomous Business Process Intelligence Platform
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.markdown("<p style='font-size:12px; color:#969aa3;'>Autonomous Business Process Intelligence Platform</p>", unsafe_allow_html=True)
     st.divider()
-
     st.markdown("### Technology")
-
     st.write("🐍 Python 3.12")
     st.write("🎨 Streamlit")
     st.write("🤖 CrewAI Flow")
     st.write("⚡ Groq API")
     st.write("🧠 GPT-OSS 20B")
-    st.write("☁️ Streamlit Cloud")
-
     st.divider()
-
-    st.markdown("### Architecture")
-
-    st.markdown(
-        """
-        **Single Groq generation + multi-stage CrewAI Flow**
-
-        The workflow contains multiple business intelligence
-        stages while keeping the actual LLM generation to
-        one primary request per run.
-        """
-    )
-
-    st.divider()
-
     st.caption("Free-tier friendly architecture")
-    st.caption("No Ollama • No local model • No paid database")
 
 
 # ============================================================
-# HERO
+# HERO SECTION
 # ============================================================
 
 st.markdown(
     """
     <div class="hero">
-
-        <span class="badge">
-            AUTONOMOUS BUSINESS INTELLIGENCE
-        </span>
-
+        <span class="badge">AUTONOMOUS BUSINESS INTELLIGENCE</span>
         <h1>BusinessOps AI</h1>
-
-        <p>
-        Transform complex business requests into structured
-        operational plans, risk controls, priority actions,
-        and measurable outcomes using an agentic AI workflow.
-        </p>
-
+        <p>Transform complex business requests into structured operational plans, risk controls, priority actions, and measurable outcomes using an agentic AI workflow.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -738,60 +413,24 @@ st.markdown(
 st.markdown("### Agentic Workflow")
 
 stages = [
-    (
-        "01",
-        "Business Analyst",
-        "Understands the business problem, objective, stakeholders and constraints.",
-    ),
-    (
-        "02",
-        "Operations Planner",
-        "Converts the problem into an executable operational workflow.",
-    ),
-    (
-        "03",
-        "Risk Manager",
-        "Identifies implementation risks and practical mitigation strategies.",
-    ),
-    (
-        "04",
-        "Action Planner",
-        "Converts recommendations into prioritized next actions.",
-    ),
-    (
-        "05",
-        "KPI Designer",
-        "Defines measurable outcomes and success indicators.",
-    ),
-    (
-        "06",
-        "QA Auditor",
-        "Performs a final quality and consistency review.",
-    ),
+    ("01", "Business Analyst", "Understands the business problem, objective, stakeholders and constraints."),
+    ("02", "Operations Planner", "Converts the problem into an executable operational workflow."),
+    ("03", "Risk Manager", "Identifies implementation risks and practical mitigation strategies."),
+    ("04", "Action Planner", "Converts recommendations into prioritized next actions."),
+    ("05", "KPI Designer", "Defines measurable outcomes and success indicators."),
+    ("06", "QA Auditor", "Performs a final quality and consistency review."),
 ]
 
 cols = st.columns(3)
 
 for i, (number, title, description) in enumerate(stages):
-
     with cols[i % 3]:
-
         st.markdown(
             f"""
             <div class="stage">
-
-                <div class="stage-number">
-                    {number} / 06
-                </div>
-
-                <div class="stage-title">
-                    {title}
-                </div>
-
-                <div class="stage-text">
-                    {description}
-                </div>
-
+                <div class="stage-number">{number} / 06</div>
+                <div class="stage-title">{title}</div>
+                <div class="stage-text">{description}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -799,61 +438,26 @@ for i, (number, title, description) in enumerate(stages):
 
 
 # ============================================================
-# METRICS
+# METRICS SECTION
 # ============================================================
 
+st.write("")
 m1, m2, m3, m4 = st.columns(4)
 
 with m1:
-    st.markdown(
-        """
-        <div class="metric-card">
-            <div class="metric-label">WORKFLOW STAGES</div>
-            <div class="metric-value">06</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.metric(label="WORKFLOW STAGES", value="06")
 with m2:
-    st.markdown(
-        """
-        <div class="metric-card">
-            <div class="metric-label">LLM CALLS / RUN</div>
-            <div class="metric-value">01</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.metric(label="LLM CALLS / RUN", value="01")
 with m3:
-    st.markdown(
-        """
-        <div class="metric-card">
-            <div class="metric-label">MODEL</div>
-            <div class="metric-value">20B</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.metric(label="MODEL", value="20B")
 with m4:
-    st.markdown(
-        """
-        <div class="metric-card">
-            <div class="metric-label">DEPLOYMENT</div>
-            <div class="metric-value">CLOUD</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.metric(label="DEPLOYMENT", value="CLOUD")
 
 st.write("")
 
 
 # ============================================================
-# BUSINESS REQUEST
+# BUSINESS REQUEST INPUT
 # ============================================================
 
 st.markdown("### Business Request")
@@ -870,75 +474,39 @@ sample = st.selectbox(
 )
 
 default_text = ""
-
 if sample == "Employee Onboarding":
-    default_text = (
-        "Our company is growing quickly and new employees are having "
-        "difficulty completing HR, IT, security and department onboarding. "
-        "Design a better onboarding process."
-    )
-
+    default_text = "Our company is growing quickly and new employees are having difficulty completing HR, IT, security and department onboarding. Design a better onboarding process."
 elif sample == "Software Rollout":
-    default_text = (
-        "A company is introducing a new internal software platform. "
-        "Employees need training, communication, migration support and "
-        "a controlled rollout plan."
-    )
-
+    default_text = "A company is introducing a new internal software platform. Employees need training, communication, migration support and a controlled rollout plan."
 elif sample == "Office Relocation":
-    default_text = (
-        "Our organization is moving to a new office. We need a plan "
-        "covering employees, IT infrastructure, vendors, communication, "
-        "facilities and business continuity."
-    )
-
+    default_text = "Our organization is moving to a new office. We need a plan covering employees, IT infrastructure, vendors, communication, facilities and business continuity."
 elif sample == "Customer Support Improvement":
-    default_text = (
-        "Customer support response times are increasing and customers "
-        "are complaining about inconsistent answers. Create an improved "
-        "support operations workflow."
-    )
-
+    default_text = "Customer support response times are increasing and customers are complaining about inconsistent answers. Create an improved support operations workflow."
 
 request = st.text_area(
     "Describe your business problem or process",
     value=default_text,
     height=170,
-    placeholder=(
-        "Example: Our company wants to improve employee onboarding..."
-    ),
+    placeholder="Example: Our company wants to improve employee onboarding...",
 )
 
 
 # ============================================================
-# EXECUTE
+# EXECUTION BUTTON
 # ============================================================
 
-if st.button(
-    "⚡ RUN BUSINESSOPS AI",
-    type="primary",
-    use_container_width=True,
-):
-
+if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True):
     if not request.strip():
-
         st.warning("Please enter a business request first.")
-
     else:
-
-        with st.spinner(
-            "BusinessOps AI is analyzing the request and generating the report..."
-        ):
-
+        with st.spinner("BusinessOps AI is analyzing the request and generating the report..."):
             flow = BusinessOpsFlow()
             flow.state["request"] = request
-
             result = flow.kickoff()
 
         st.success("Business workflow completed.")
-
         st.markdown("### Intelligence Report")
-
+        
         st.markdown(
             f"""
             <div class="report">
@@ -962,16 +530,10 @@ if st.button(
 # ============================================================
 
 st.divider()
-
 st.markdown(
     """
-    <div style="
-        text-align:center;
-        color:#667386;
-        font-size:12px;
-    ">
-        BusinessOps AI • Autonomous Business Process Intelligence
-        • CrewAI + Groq • Free-tier deployment architecture
+    <div style="text-align:center; color:#667386; font-size:12px;">
+        BusinessOps AI • Autonomous Business Process Intelligence • CrewAI + Groq • Free-tier deployment architecture
     </div>
     """,
     unsafe_allow_html=True,
