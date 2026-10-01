@@ -3,6 +3,7 @@
 # ============================================================
 
 st.markdown(
+    """
     <style>
 
     /* ======================================================
@@ -27,7 +28,6 @@ st.markdown(
                 #0b0c0f 48%,
                 #090a0d 100%
             );
-
         color: #eeeeec;
     }
 
@@ -66,11 +66,8 @@ st.markdown(
                 #090a0d 55%,
                 #07080a 100%
             );
-
-        border-right: 1px solid rgba(255,255,255,0.065);
-
-        box-shadow:
-            8px 0 35px rgba(0,0,0,0.18);
+        border-right: 1px solid rgba(255, 255, 255, 0.065);
+        box-shadow: 8px 0 35px rgba(0, 0, 0, 0.18);
     }
 
     section[data-testid="stSidebar"] > div {
@@ -99,7 +96,7 @@ st.markdown(
     }
 
     h2 {
-        color: #eeeDEa !important;
+        color: #eeeDEA !important;
         font-weight: 850 !important;
         letter-spacing: -0.8px !important;
     }
@@ -154,14 +151,14 @@ st.markdown(
                 145deg,
                 rgba(20, 19, 23, 0.98),
                 rgba(11, 12, 15, 0.98)
-            );
+            ) !important;
 
-        border: 1px solid rgba(255,255,255,0.065) !important;
+        border: 1px solid rgba(255, 255, 255, 0.065) !important;
 
         border-radius: 16px !important;
 
         box-shadow:
-            0 14px 38px rgba(0,0,0,0.20);
+            0 14px 38px rgba(0, 0, 0, 0.20);
     }
 
 
@@ -172,15 +169,10 @@ st.markdown(
     textarea,
     input {
         background: #0c0e12 !important;
-
         color: #f2f1ee !important;
-
         border: 1px solid #292c33 !important;
-
         border-radius: 10px !important;
-
         font-size: 13px !important;
-
         line-height: 1.65 !important;
     }
 
@@ -195,8 +187,8 @@ st.markdown(
         border-color: #823249 !important;
 
         box-shadow:
-            0 0 0 1px rgba(157,58,84,0.18),
-            0 0 20px rgba(122,34,55,0.08) !important;
+            0 0 0 1px rgba(157, 58, 84, 0.18),
+            0 0 20px rgba(122, 34, 55, 0.08) !important;
     }
 
 
@@ -206,11 +198,8 @@ st.markdown(
 
     div[data-baseweb="select"] > div {
         background: #0c0e12 !important;
-
         border-color: #292c33 !important;
-
         border-radius: 10px !important;
-
         min-height: 43px !important;
     }
 
@@ -229,7 +218,7 @@ st.markdown(
 
         border-radius: 10px;
 
-        border: 1px solid rgba(177,76,101,0.28);
+        border: 1px solid rgba(177, 76, 101, 0.28);
 
         background:
             linear-gradient(
@@ -248,11 +237,14 @@ st.markdown(
         letter-spacing: 0.1px;
 
         box-shadow:
-            0 10px 28px rgba(0,0,0,0.22);
+            0 10px 28px rgba(0, 0, 0, 0.22);
+
+        transition:
+            all 0.2s ease;
     }
 
     div.stButton > button:hover {
-        border-color: rgba(210,145,160,0.45);
+        border-color: rgba(210, 145, 160, 0.45);
 
         background:
             linear-gradient(
@@ -263,7 +255,7 @@ st.markdown(
             );
 
         box-shadow:
-            0 12px 32px rgba(116,34,55,0.20);
+            0 12px 32px rgba(116, 34, 55, 0.20);
 
         transform: translateY(-1px);
     }
@@ -292,12 +284,15 @@ st.markdown(
         font-size: 11px;
 
         font-weight: 750;
+
+        transition:
+            all 0.2s ease;
     }
 
     div[data-testid="stDownloadButton"] button:hover {
         border-color: #743047;
 
-        color: #eee;
+        color: #eeeeee;
 
         background: #13151a;
     }
@@ -311,18 +306,18 @@ st.markdown(
         background:
             linear-gradient(
                 145deg,
-                rgba(255,255,255,0.030),
-                rgba(255,255,255,0.012)
+                rgba(255, 255, 255, 0.030),
+                rgba(255, 255, 255, 0.012)
             );
 
-        border: 1px solid rgba(255,255,255,0.055);
+        border: 1px solid rgba(255, 255, 255, 0.055);
 
         border-radius: 12px;
 
         padding: 14px 15px;
 
         box-shadow:
-            0 7px 20px rgba(0,0,0,0.12);
+            0 7px 20px rgba(0, 0, 0, 0.12);
     }
 
     div[data-testid="stMetricLabel"] {
@@ -392,15 +387,11 @@ st.markdown(
 
 
     /* ======================================================
-       SUCCESS / WARNING / ERROR / INFO
+       ALERTS
        ====================================================== */
 
     div[data-testid="stAlert"] {
         border-radius: 10px !important;
-    }
-
-    div[data-testid="stAlert"][kind="success"] {
-        background: rgba(66, 105, 82, 0.08) !important;
     }
 
 
@@ -409,7 +400,7 @@ st.markdown(
        ====================================================== */
 
     hr {
-        border-color: rgba(255,255,255,0.055) !important;
+        border-color: rgba(255, 255, 255, 0.055) !important;
     }
 
 
