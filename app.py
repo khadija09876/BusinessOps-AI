@@ -1,3 +1,19 @@
+import streamlit as st
+from textwrap import dedent
+
+
+# ============================================================
+# PAGE CONFIG
+# ============================================================
+
+st.set_page_config(
+    page_title="BusinessOps AI",
+    page_icon="◈",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+
 # ============================================================
 # PREMIUM CHARCOAL + MAROON UI
 # ============================================================
@@ -276,7 +292,7 @@ st.markdown(
 
         /* ======================================================
            SECTION LABELS
-           ====================================================== */
+        ====================================================== */
 
         .section {
             margin-top: 19px;
@@ -869,5 +885,528 @@ st.markdown(
         </style>
         """
     ),
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# SIDEBAR
+# ============================================================
+
+with st.sidebar:
+
+    st.markdown(
+        """
+        <div class="brand">
+
+            <div class="brand-mark">
+                ◈
+            </div>
+
+            <div class="brand-name">
+                BusinessOps AI
+            </div>
+
+            <div class="brand-desc">
+                Autonomous Business Process
+                Intelligence Platform
+            </div>
+
+            <div class="system-card">
+
+                <div class="system-label">
+                    SYSTEM STATUS
+                </div>
+
+                <div class="system-value">
+                    <span class="system-dot"></span>
+                    Operational
+                </div>
+
+            </div>
+
+            <div class="side-info">
+                AI-powered workflow analysis,
+                risk identification, action planning
+                and business performance intelligence.
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ============================================================
+# HERO
+# ============================================================
+
+st.markdown(
+    """
+    <div class="hero">
+
+        <div class="hero-badge">
+            AUTONOMOUS BUSINESS INTELLIGENCE
+        </div>
+
+        <div class="hero-title">
+            BusinessOps <span>AI</span>
+        </div>
+
+        <div class="hero-desc">
+            Transform business requests into structured operational
+            plans, risk insights, prioritized actions and measurable
+            performance outcomes.
+        </div>
+
+        <div class="hero-line"></div>
+
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# WORKFLOW SECTION
+# ============================================================
+
+st.markdown(
+    """
+    <div class="section">
+
+        <div class="eyebrow">
+            AI WORKFLOW
+        </div>
+
+        <div class="section-title">
+            Autonomous Process Intelligence
+        </div>
+
+        <div class="section-desc">
+            A structured workflow transforms the business request
+            into an actionable operational intelligence report.
+        </div>
+
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+st.markdown(
+    """
+    <div class="flow-strip">
+
+        <div class="flow-item">
+            <div class="flow-num">01</div>
+            <div class="flow-name">Business Intake</div>
+        </div>
+
+        <div class="flow-arrow">→</div>
+
+        <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-name">Analysis</div>
+        </div>
+
+        <div class="flow-arrow">→</div>
+
+        <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-name">Operations</div>
+        </div>
+
+        <div class="flow-arrow">→</div>
+
+        <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-name">Risk Review</div>
+        </div>
+
+        <div class="flow-arrow">→</div>
+
+        <div class="flow-item">
+            <div class="flow-num">05</div>
+            <div class="flow-name">Action Plan</div>
+        </div>
+
+        <div class="flow-arrow">→</div>
+
+        <div class="flow-item">
+            <div class="flow-num">06</div>
+            <div class="flow-name">QA Audit</div>
+        </div>
+
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# CONTROL PANEL
+# ============================================================
+
+st.markdown(
+    """
+    <div class="section">
+
+        <div class="eyebrow">
+            ANALYSIS WORKSPACE
+        </div>
+
+        <div class="section-title">
+            Business Request
+        </div>
+
+        <div class="section-desc">
+            Describe the business process, operational problem
+            or improvement requirement.
+        </div>
+
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+st.markdown(
+    '<div class="control-panel">',
+    unsafe_allow_html=True,
+)
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    scenario = st.selectbox(
+        "Scenario",
+        [
+            "Operational Improvement",
+            "Process Optimization",
+            "Cost Reduction",
+            "Customer Experience",
+            "Risk Management",
+            "Performance Improvement",
+        ],
+    )
+
+    department = st.selectbox(
+        "Business Area",
+        [
+            "Operations",
+            "Human Resources",
+            "Finance",
+            "Sales",
+            "Marketing",
+            "Customer Support",
+            "IT",
+            "Management",
+        ],
+    )
+
+
+with col2:
+
+    priority = st.selectbox(
+        "Priority",
+        [
+            "Critical",
+            "High",
+            "Medium",
+            "Low",
+        ],
+    )
+
+    timeline = st.selectbox(
+        "Timeline",
+        [
+            "Immediate",
+            "7 Days",
+            "30 Days",
+            "60 Days",
+            "90 Days",
+        ],
+    )
+
+
+request = st.text_area(
+    "Business Request",
+    placeholder=(
+        "Example: Our customer support response time has increased. "
+        "Analyze the process, identify operational bottlenecks, "
+        "assess risks and propose an improvement plan."
+    ),
+    height=180,
+)
+
+
+col_run, col_clear = st.columns([3, 1])
+
+with col_run:
+    run = st.button(
+        "Run BusinessOps Analysis",
+        use_container_width=True,
+    )
+
+with col_clear:
+    clear = st.button(
+        "Clear",
+        use_container_width=True,
+    )
+
+
+st.markdown(
+    "</div>",
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# CLEAR
+# ============================================================
+
+if clear:
+    st.rerun()
+
+
+# ============================================================
+# EMPTY STATE
+# ============================================================
+
+if not run:
+
+    st.markdown(
+        """
+        <div class="section">
+
+            <div class="eyebrow">
+                READY
+            </div>
+
+            <div class="section-title">
+                Waiting for Business Request
+            </div>
+
+            <div class="section-desc">
+                Enter a business problem above to begin the
+                BusinessOps intelligence workflow.
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ============================================================
+# DEMO RESULT
+# ============================================================
+
+if run:
+
+    if not request.strip():
+
+        st.warning(
+            "Please enter a business request before running the analysis."
+        )
+
+    else:
+
+        st.markdown(
+            """
+            <div class="report-meta">
+
+                <div>
+                    <div class="report-name">
+                        BusinessOps Analysis Report
+                    </div>
+
+                    <div class="report-id">
+                        BO-DEMO-001
+                    </div>
+                </div>
+
+                <div class="report-time">
+                    Analysis Ready
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            """
+            <div class="status-strip">
+
+                <div class="status">
+                    <div class="status-label">INTAKE</div>
+                    <div class="status-value">READY</div>
+                </div>
+
+                <div class="status">
+                    <div class="status-label">ANALYSIS</div>
+                    <div class="status-value">READY</div>
+                </div>
+
+                <div class="status">
+                    <div class="status-label">OPERATIONS</div>
+                    <div class="status-value">READY</div>
+                </div>
+
+                <div class="status">
+                    <div class="status-label">RISK</div>
+                    <div class="status-value">READY</div>
+                </div>
+
+                <div class="status">
+                    <div class="status-label">ACTIONS</div>
+                    <div class="status-value">READY</div>
+                </div>
+
+                <div class="status">
+                    <div class="status-label">QA</div>
+                    <div class="status-value">READY</div>
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            """
+            <div class="metrics">
+
+                <div class="metric">
+                    <div class="metric-label">PRIORITY</div>
+                    <div class="metric-value">
+                        <span>HIGH</span>
+                    </div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">RISK AREAS</div>
+                    <div class="metric-value">04</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">ACTIONS</div>
+                    <div class="metric-value">08</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">KPIs</div>
+                    <div class="metric-value">06</div>
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+        # ========================================================
+        # REPORT
+        # ========================================================
+
+        st.markdown(
+            """
+            <div class="section">
+
+                <div class="eyebrow">
+                    INTELLIGENCE REPORT
+                </div>
+
+                <div class="section-title">
+                    Operational Assessment
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+        st.markdown(
+            '<div class="report-card">',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown("## Executive Summary")
+
+        st.write(
+            "The submitted business request has been structured "
+            "for operational analysis. The workflow focuses on "
+            "process improvement, risk visibility, prioritized "
+            "actions and measurable outcomes."
+        )
+
+        st.markdown("## Business Analysis")
+
+        st.write(
+            "The current requirement indicates an operational "
+            "improvement opportunity. The primary focus should "
+            "be placed on identifying process bottlenecks, "
+            "clarifying ownership and establishing measurable "
+            "performance indicators."
+        )
+
+        st.markdown("## Recommended Workflow")
+
+        st.markdown(
+            """
+            - Map the current business process.
+            - Identify major operational bottlenecks.
+            - Define ownership for each critical activity.
+            - Prioritize improvement opportunities.
+            - Establish measurable KPIs.
+            - Review results and continuously improve the process.
+            """
+        )
+
+        st.markdown("## Priority Actions")
+
+        st.markdown(
+            """
+            1. Document the current process.
+            2. Identify the highest-impact bottlenecks.
+            3. Assign responsible owners.
+            4. Define measurable improvement targets.
+            5. Monitor performance against KPIs.
+            """
+        )
+
+        st.markdown("## KPIs / Success Metrics")
+
+        st.markdown(
+            """
+            - Process completion time
+            - Operational efficiency
+            - Error rate
+            - Customer satisfaction
+            - SLA compliance
+            - Task completion rate
+            """
+        )
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+
+# ============================================================
+# FOOTER
+# ============================================================
+
+st.markdown(
+    """
+    <div class="footer">
+        BusinessOps AI · Autonomous Business Process Intelligence
+    </div>
+    """,
     unsafe_allow_html=True,
 )
