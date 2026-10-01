@@ -6,11 +6,13 @@ from groq import Groq
 # CrewAI Flow
 from crewai.flow import Flow, start, listen
 
-# Report generation libraries
+# Report generation libraries & visualization
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from docx import Document
+import plotly.express as px
+import pandas as pd
 
 
 # ============================================================
@@ -338,12 +340,13 @@ class BusinessOpsFlow(Flow):
         if not data["request"]:
             return "Please enter a business request."
 
-        api_key = st.secrets.get("GROQ_API_KEY")
+        # Use user-provided API key from session state if available, else fallback to secrets
+        api_key = st.session_state.get("user_groq_api_key") or st.secrets.get("GROQ_API_KEY")
 
         if not api_key:
             return (
                 "GROQ_API_KEY is missing. "
-                "Add it in Streamlit Cloud → Settings → Secrets."
+                "Add it in Streamlit Cloud → Settings → Secrets or provide it in the sidebar API configuration."
             )
 
         client = Groq(api_key=api_key)
@@ -433,6 +436,17 @@ Requirements:
 with st.sidebar:
     st.markdown("## ⚡ BusinessOps AI")
     st.markdown("<p style='font-size:12px; color:#969aa3;'>Autonomous Business Process Intelligence Platform</p>", unsafe_allow_html=True)
+    st.divider()
+    
+    # Feature 1: User-Provided API Key Fallback
+    st.markdown("### 🔑 API Configuration")
+    user_api_input = st.text_input("Groq API Key (Optional)", type="password", placeholder="gsk_...", help="Provide your own Groq key to bypass global rate limits.")
+    if user_api_input:
+        st.session_state["user_groq_api_key"] = user_api_input
+        st.success("Using custom API key.")
+    else:
+        st.session_state["user_groq_api_key"] = None
+
     st.divider()
     st.markdown("### Technology")
     st.write("🐍 Python 3.12")
@@ -572,6 +586,10 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
             flow.state["priority"] = priority
             result = flow.kickoff()
 
+        # Save result in session state for chat & history persistence
+        st.session_state["last_report"] = result
+        st.session_state["chat_history"] = []
+
         st.success("Business workflow completed successfully.")
         
         st.write("")
@@ -598,6 +616,25 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
                 st.metric(label="EXECUTION READINESS", value="98.5%")
 
         with tab2:
+            st.markdown("#### 📅 Interactive Milestone Roadmap (Gantt View)")
+            # Feature 2: Interactive Gantt / Timeline Chart using Plotly
+            gantt_data = pd.DataFrame([
+                dict(Task="Phase 1: Setup & Intake", Start="2026-03-01", Finish="2026-03-05", Phase="Setup"),
+                dict(Task="Phase 2: Core Execution", Start="2026-03-06", Finish="2026-03-20", Phase="Execution"),
+                dict(Task="Phase 3: Optimization & QA", Start="2026-03-21", Finish="2026-03-30", Phase="Optimization")
+            ])
+            fig = px.timeline(gantt_data, x_start="Start", x_end="Finish", y="Task", color="Phase",
+                              color_discrete_sequence=["#79283f", "#49212d", "#b14c65"])
+            fig.update_yaxes(autorange="reversed")
+            fig.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font_color='#eeeeec',
+                margin=dict(t=10, b=10, l=10, r=10),
+                height=220
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
             r_cols = st.columns(3)
             with r_cols[0]:
                 st.info("**Phase 1: Setup & Intake**\n\n• Align stakeholders\n• Confirm scope & constraints\n• Immediate resource mapping")
@@ -614,6 +651,17 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
                 st.warning("**Mitigation Strategy**\n\n• Early escalation matrix\n• Automated tracking triggers\n• Contingency buffer assignment")
             with ro3:
                 st.success("**Continuity Assurance**\n\n• Backup protocol channels\n• Regular status checkpoints\n• Stakeholder alignment validation")
+
+            st.write("")
+            st.markdown("#### 🎯 Risk Impact vs Likelihood Matrix")
+            # Feature 2 (cont.): Risk Heat Matrix representation
+            risk_matrix_data = pd.DataFrame({
+                "Risk Factor": ["Resource Bottlenecks", "Timeline Delay", "Tech Integration Error", "Communication Gaps"],
+                "Likelihood": ["Medium", "High", "Low", "Medium"],
+                "Impact": ["High", "High", "Critical", "Medium"],
+                "Status": ["Mitigated", "Active", "Controlled", "Mitigated"]
+            })
+            st.dataframe(risk_matrix_data, use_container_width=True, hide_index=True)
 
         with tab4:
             st.markdown(
@@ -653,6 +701,64 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True,
                 )
+
+# ============================================================
+# FEATURE 3: INTERACTIVE "CHAT WITH YOUR OPS PLAN" INTERFACE
+# ============================================================
+
+if "last_report" in st.session_state and st.session_state["last_report"]:
+    st.write("")
+    st.markdown("---")
+    st.markdown("### 💬 Chat with your Ops Plan")
+    st.markdown("<p style='font-size:12px; color:#969aa3;'>Ask follow-up questions, request specific sprint breakdowns, or query bottlenecks from your generated report.</p>", unsafe_allow_html=True)
+
+    if "chat_history" not in st.session_state:
+        st.session_state["chat_history"] = []
+
+    # Display prior conversation turns
+    for message in st.session_state["chat_history"]:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # Chat input box
+    if user_query := st.chat_input("Ask a question about your operational plan..."):
+        st.session_state["chat_history"].append({"role": "user", "content": user_query})
+        with st.chat_message("user"):
+            st.markdown(user_query)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Analyzing operational plan..."):
+                api_key = st.session_state.get("user_groq_api_key") or st.secrets.get("GROQ_API_KEY")
+                if not api_key:
+                    chat_response = "API key missing. Please provide a Groq API key in the sidebar."
+                else:
+                    try:
+                        chat_client = Groq(api_key=api_key)
+                        chat_prompt = f"""
+You are BusinessOps AI answering follow-up questions based on the generated Operations Report below.
+Report:
+{st.session_state["last_report"]}
+
+User Question:
+{user_query}
+
+Provide a concise, highly practical, and professional response.
+"""
+                        chat_completion = chat_client.chat.completions.create(
+                            model=MODEL,
+                            messages=[
+                                {"role": "system", "content": "You are a professional business operations assistant answering queries about a generated report."},
+                                {"role": "user", "content": chat_prompt}
+                            ],
+                            temperature=0.2,
+                            max_completion_tokens=400
+                        )
+                        chat_response = chat_completion.choices[0].message.content.strip()
+                    except Exception as e:
+                        chat_response = f"Could not generate chat response. Error: {e}"
+
+                st.markdown(chat_response)
+                st.session_state["chat_history"].append({"role": "assistant", "content": chat_response})
 
 
 # ============================================================
