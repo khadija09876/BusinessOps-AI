@@ -1,5 +1,5 @@
 streamlit
-crewai==1.15.23
+crewai
 groq
 reportlab
 python-docx
