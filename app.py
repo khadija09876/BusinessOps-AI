@@ -42,8 +42,8 @@ st.markdown(
     <style>
 
     /* ======================================================
-       GLOBAL APPLICATION
-       ====================================================== */
+        GLOBAL APPLICATION
+        ====================================================== */
 
     .stApp {
         background:
@@ -87,8 +87,8 @@ st.markdown(
 
 
     /* ======================================================
-       CUSTOM COMPONENTS (BADGE, HERO, STAGES, REPORT)
-       ====================================================== */
+        CUSTOM COMPONENTS (BADGE, HERO, STAGES, REPORT)
+        ====================================================== */
 
     .badge {
         display: inline-block;
@@ -151,8 +151,8 @@ st.markdown(
 
 
     /* ======================================================
-       SIDEBAR & TYPOGRAPHY
-       ====================================================== */
+        SIDEBAR & TYPOGRAPHY
+        ====================================================== */
 
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0d0e11 0%, #090a0d 55%, #07080a 100%);
@@ -182,8 +182,8 @@ st.markdown(
 
 
     /* ======================================================
-       INPUTS & BUTTONS
-       ====================================================== */
+        INPUTS & BUTTONS
+        ====================================================== */
 
     textarea, input {
         background: #0c0e12 !important;
@@ -558,7 +558,7 @@ request = st.text_area(
 
 
 # ============================================================
-# EXECUTION BUTTON & ADVANCED OUTPUT FEATURES
+# EXECUTION BUTTON & ENHANCED SEPARATE PORTIONS
 # ============================================================
 
 if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True):
@@ -574,8 +574,9 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
 
         st.success("Business workflow completed successfully.")
         
-        # Advanced Feature: Executive Health & Metrics Bar
+        # PORTION 1: Executive Health & Metrics Bar
         st.write("")
+        st.markdown("---")
         st.markdown("### 📊 Operational Overview")
         om1, om2, om3, om4 = st.columns(4)
         with om1:
@@ -587,9 +588,10 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
         with om4:
             st.metric(label="EXECUTION READINESS", value="98.5%")
 
-        # Advanced Feature: Interactive Roadmap View
+        # PORTION 2: Dedicated Milestone Roadmap Section
         st.write("")
-        st.markdown("### 🗺️ Milestone Roadmap")
+        st.markdown("---")
+        st.markdown("### 🗺️️ Milestone Roadmap Strategy")
         r_cols = st.columns(3)
         with r_cols[0]:
             st.info("**Phase 1: Setup & Intake**\n\n• Align stakeholders\n• Confirm scope & constraints\n• Immediate resource mapping")
@@ -598,8 +600,9 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
         with r_cols[2]:
             st.success("**Phase 3: Optimization & QA**\n\n• Evaluate performance metrics\n• Continuous quality audits\n• Final sign-off & handoff")
 
-        # Risk Operations Intelligence Feature
+        # PORTION 3: Dedicated Risk Operations Intelligence Section
         st.write("")
+        st.markdown("---")
         st.markdown("### 🛡️ Risk Operations Intelligence")
         ro1, ro2, ro3 = st.columns(3)
         with ro1:
@@ -609,8 +612,10 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
         with ro3:
             st.success("**Continuity Assurance**\n\n• Backup protocol channels\n• Regular status checkpoints\n• Stakeholder alignment validation")
 
+        # PORTION 4: Generated Full Intelligence Report Output
         st.write("")
-        st.markdown("### Intelligence Report")
+        st.markdown("---")
+        st.markdown("### 📝 Full Intelligence Report")
         
         st.markdown(
             f"""
