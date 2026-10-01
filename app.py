@@ -69,14 +69,13 @@ st.markdown(
         ====================================================== */
 
         section[data-testid="stSidebar"] {
-            background:
-                linear-gradient(
-                    180deg,
-                    #0c0d10 0%,
-                    #08090c 100%
-                );
+            background: linear-gradient(
+                180deg,
+                #0c0d10 0%,
+                #08090c 100%
+            );
 
-            border-right: 1px solid rgba(255,255,255,0.055);
+            border-right: 1px solid rgba(255, 255, 255, 0.055);
         }
 
         section[data-testid="stSidebar"] > div {
@@ -96,19 +95,18 @@ st.markdown(
             align-items: center;
             justify-content: center;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    #8f3048,
-                    #5b2633
-                );
+            background: linear-gradient(
+                135deg,
+                #8f3048,
+                #5b2633
+            );
 
             color: white;
             font-size: 20px;
             font-weight: 900;
 
             box-shadow:
-                0 8px 28px rgba(128,38,57,0.18);
+                0 8px 28px rgba(128, 38, 57, 0.18);
         }
 
         .brand-name {
@@ -128,12 +126,11 @@ st.markdown(
 
         .system-card {
             margin-top: 16px;
-            padding: 13px 13px;
-
+            padding: 13px;
             border-radius: 11px;
 
-            background: rgba(255,255,255,0.025);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .system-label {
@@ -152,10 +149,8 @@ st.markdown(
 
         .system-dot {
             display: inline-block;
-
             width: 7px;
             height: 7px;
-
             border-radius: 50%;
 
             background: #b95b73;
@@ -163,14 +158,12 @@ st.markdown(
             margin-right: 6px;
 
             box-shadow:
-                0 0 10px rgba(185,91,115,0.65);
+                0 0 10px rgba(185, 91, 115, 0.65);
         }
 
         .side-info {
             margin-top: 14px;
-
             color: #656b76;
-
             font-size: 10px;
             line-height: 1.7;
         }
@@ -188,17 +181,16 @@ st.markdown(
 
             border-radius: 20px;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(21,20,24,0.98),
-                    rgba(12,13,17,0.98)
-                );
+            background: linear-gradient(
+                135deg,
+                rgba(21, 20, 24, 0.98),
+                rgba(12, 13, 17, 0.98)
+            );
 
-            border: 1px solid rgba(255,255,255,0.065);
+            border: 1px solid rgba(255, 255, 255, 0.065);
 
             box-shadow:
-                0 20px 65px rgba(0,0,0,0.24);
+                0 20px 65px rgba(0, 0, 0, 0.24);
 
             margin-bottom: 16px;
         }
@@ -216,12 +208,11 @@ st.markdown(
 
             border-radius: 50%;
 
-            background:
-                radial-gradient(
-                    circle,
-                    rgba(128,38,57,0.13),
-                    transparent 65%
-                );
+            background: radial-gradient(
+                circle,
+                rgba(128, 38, 57, 0.13),
+                transparent 65%
+            );
 
             pointer-events: none;
         }
@@ -233,9 +224,9 @@ st.markdown(
 
             border-radius: 20px;
 
-            background: rgba(128,38,57,0.065);
+            background: rgba(128, 38, 57, 0.065);
 
-            border: 1px solid rgba(185,91,115,0.16);
+            border: 1px solid rgba(185, 91, 115, 0.16);
 
             color: #d79aaa;
 
@@ -281,12 +272,11 @@ st.markdown(
 
             border-radius: 10px;
 
-            background:
-                linear-gradient(
-                    90deg,
-                    #8f3048,
-                    #a7adb7
-                );
+            background: linear-gradient(
+                90deg,
+                #8f3048,
+                #a7adb7
+            );
         }
 
 
@@ -340,9 +330,9 @@ st.markdown(
 
             padding: 10px;
 
-            background: rgba(14,15,19,0.95);
+            background: rgba(14, 15, 19, 0.95);
 
-            border: 1px solid rgba(255,255,255,0.055);
+            border: 1px solid rgba(255, 255, 255, 0.055);
 
             border-radius: 14px;
 
@@ -354,22 +344,22 @@ st.markdown(
 
             min-width: 125px;
 
-            padding: 12px 12px;
+            padding: 12px;
 
             border-radius: 9px;
 
-            background: rgba(255,255,255,0.022);
+            background: rgba(255, 255, 255, 0.022);
 
-            border: 1px solid rgba(255,255,255,0.045);
+            border: 1px solid rgba(255, 255, 255, 0.045);
 
             transition: 0.2s ease;
         }
 
         .flow-item:hover {
-            border-color: rgba(185,91,115,0.24);
+            border-color: rgba(185, 91, 115, 0.24);
 
             background:
-                rgba(128,38,57,0.045);
+                rgba(128, 38, 57, 0.045);
         }
 
         .flow-num {
@@ -403,45 +393,30 @@ st.markdown(
         .control-panel {
             padding: 18px;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(19,18,22,0.98),
-                    rgba(11,12,16,0.98)
-                );
+            background: linear-gradient(
+                145deg,
+                rgba(19, 18, 22, 0.98),
+                rgba(11, 12, 16, 0.98)
+            );
 
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
 
             border-radius: 16px;
         }
 
-        .control-label {
-            color: #7d838e;
-
-            font-size: 9px;
-            font-weight: 800;
-
-            letter-spacing: 1px;
-
-            margin-bottom: 6px;
-        }
-
 
         /* ======================================================
-           STREAMLIT INPUT TEXT
+           INPUTS
         ====================================================== */
 
         textarea,
         input {
             background: #0c0e13 !important;
-
             color: #f5f5f4 !important;
 
-            border:
-                1px solid #272a32 !important;
+            border: 1px solid #272a32 !important;
 
-            border-radius:
-                9px !important;
+            border-radius: 9px !important;
 
             font-size: 13px !important;
 
@@ -456,23 +431,18 @@ st.markdown(
 
         textarea:focus,
         input:focus {
-            border-color:
-                #8f3048 !important;
+            border-color: #8f3048 !important;
 
             box-shadow:
-                0 0 0 1px
-                rgba(185,91,115,0.15) !important;
+                0 0 0 1px rgba(185, 91, 115, 0.15) !important;
         }
 
         div[data-baseweb="select"] > div {
-            background:
-                #0c0e13 !important;
+            background: #0c0e13 !important;
 
-            border-color:
-                #272a32 !important;
+            border-color: #272a32 !important;
 
-            border-radius:
-                9px !important;
+            border-radius: 9px !important;
 
             min-height: 43px !important;
         }
@@ -496,15 +466,13 @@ st.markdown(
 
             border-radius: 9px;
 
-            border:
-                1px solid rgba(185,91,115,0.22);
+            border: 1px solid rgba(185, 91, 115, 0.22);
 
-            background:
-                linear-gradient(
-                    100deg,
-                    #7c2940,
-                    #542733
-                );
+            background: linear-gradient(
+                100deg,
+                #7c2940,
+                #542733
+            );
 
             color: white;
 
@@ -513,17 +481,15 @@ st.markdown(
             font-weight: 800;
 
             box-shadow:
-                0 9px 25px
-                rgba(0,0,0,0.20);
+                0 9px 25px rgba(0, 0, 0, 0.20);
         }
 
         div.stButton > button:hover {
             border-color:
-                rgba(215,154,170,0.38);
+                rgba(215, 154, 170, 0.38);
 
             box-shadow:
-                0 12px 30px
-                rgba(128,38,57,0.14);
+                0 12px 30px rgba(128, 38, 57, 0.14);
         }
 
         div[data-testid="stDownloadButton"] button {
@@ -533,8 +499,7 @@ st.markdown(
 
             background: #101116;
 
-            border:
-                1px solid #292c34;
+            border: 1px solid #292c34;
 
             color: #d8d9dc;
 
@@ -565,10 +530,10 @@ st.markdown(
             border-radius: 11px;
 
             background:
-                rgba(255,255,255,0.022);
+                rgba(255, 255, 255, 0.022);
 
             border:
-                1px solid rgba(255,255,255,0.05);
+                1px solid rgba(255, 255, 255, 0.05);
 
             text-align: left;
         }
@@ -613,10 +578,10 @@ st.markdown(
             border-radius: 11px;
 
             background:
-                rgba(128,38,57,0.035);
+                rgba(128, 38, 57, 0.035);
 
             border:
-                1px solid rgba(185,91,115,0.10);
+                1px solid rgba(185, 91, 115, 0.10);
 
             margin-top: 15px;
             margin-bottom: 9px;
@@ -670,10 +635,10 @@ st.markdown(
             text-align: center;
 
             background:
-                rgba(100,116,139,0.035);
+                rgba(100, 116, 139, 0.035);
 
             border:
-                1px solid rgba(100,116,139,0.09);
+                1px solid rgba(100, 116, 139, 0.09);
         }
 
         .status-label {
@@ -704,20 +669,19 @@ st.markdown(
 
             border-radius: 14px;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(17,17,21,0.98),
-                    rgba(10,11,15,0.98)
-                );
+            background: linear-gradient(
+                145deg,
+                rgba(17, 17, 21, 0.98),
+                rgba(10, 11, 15, 0.98)
+            );
 
             border:
-                1px solid rgba(255,255,255,0.055);
+                1px solid rgba(255, 255, 255, 0.055);
         }
 
 
         /* ======================================================
-           REPORT MARKDOWN
+           MARKDOWN
         ====================================================== */
 
         div[data-testid="stMarkdownContainer"] {
@@ -793,14 +757,12 @@ st.markdown(
         ====================================================== */
 
         div[data-testid="stExpander"] {
-            background:
-                #0d0f14;
+            background: #0d0f14;
 
             border:
                 1px solid #272a32;
 
-            border-radius:
-                11px;
+            border-radius: 11px;
         }
 
         div[data-testid="stExpander"] summary {
@@ -813,9 +775,13 @@ st.markdown(
         ====================================================== */
 
         div[data-testid="stMetric"] {
-            background: rgba(255,255,255,0.018);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.018);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.05);
+
             border-radius: 10px;
+
             padding: 10px 12px;
         }
 
@@ -1076,7 +1042,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
 col1, col2 = st.columns(2)
+
 
 with col1:
 
@@ -1144,13 +1112,17 @@ request = st.text_area(
 
 col_run, col_clear = st.columns([3, 1])
 
+
 with col_run:
+
     run = st.button(
         "Run BusinessOps Analysis",
         use_container_width=True,
     )
 
+
 with col_clear:
+
     clear = st.button(
         "Clear",
         use_container_width=True,
@@ -1219,6 +1191,7 @@ if run:
             <div class="report-meta">
 
                 <div>
+
                     <div class="report-name">
                         BusinessOps Analysis Report
                     </div>
@@ -1226,6 +1199,7 @@ if run:
                     <div class="report-id">
                         BO-DEMO-001
                     </div>
+
                 </div>
 
                 <div class="report-time">
@@ -1236,6 +1210,11 @@ if run:
             """,
             unsafe_allow_html=True,
         )
+
+
+        # ====================================================
+        # STATUS STRIP
+        # ====================================================
 
         st.markdown(
             """
@@ -1276,30 +1255,64 @@ if run:
             unsafe_allow_html=True,
         )
 
+
+        # ====================================================
+        # METRICS
+        # ====================================================
+
         st.markdown(
             """
             <div class="metrics">
 
                 <div class="metric">
-                    <div class="metric-label">PRIORITY</div>
+
+                    <div class="metric-label">
+                        PRIORITY
+                    </div>
+
                     <div class="metric-value">
                         <span>HIGH</span>
                     </div>
+
                 </div>
 
-                <div class="metric">
-                    <div class="metric-label">RISK AREAS</div>
-                    <div class="metric-value">04</div>
-                </div>
 
                 <div class="metric">
-                    <div class="metric-label">ACTIONS</div>
-                    <div class="metric-value">08</div>
+
+                    <div class="metric-label">
+                        RISK AREAS
+                    </div>
+
+                    <div class="metric-value">
+                        04
+                    </div>
+
                 </div>
 
+
                 <div class="metric">
-                    <div class="metric-label">KPIs</div>
-                    <div class="metric-value">06</div>
+
+                    <div class="metric-label">
+                        ACTIONS
+                    </div>
+
+                    <div class="metric-value">
+                        08
+                    </div>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <div class="metric-label">
+                        KPIs
+                    </div>
+
+                    <div class="metric-value">
+                        06
+                    </div>
+
                 </div>
 
             </div>
@@ -1308,9 +1321,9 @@ if run:
         )
 
 
-        # ========================================================
-        # REPORT
-        # ========================================================
+        # ====================================================
+        # REPORT HEADER
+        # ====================================================
 
         st.markdown(
             """
@@ -1330,10 +1343,15 @@ if run:
         )
 
 
+        # ====================================================
+        # REPORT CARD
+        # ====================================================
+
         st.markdown(
             '<div class="report-card">',
             unsafe_allow_html=True,
         )
+
 
         st.markdown("## Executive Summary")
 
@@ -1344,6 +1362,7 @@ if run:
             "actions and measurable outcomes."
         )
 
+
         st.markdown("## Business Analysis")
 
         st.write(
@@ -1353,6 +1372,7 @@ if run:
             "clarifying ownership and establishing measurable "
             "performance indicators."
         )
+
 
         st.markdown("## Recommended Workflow")
 
@@ -1367,6 +1387,7 @@ if run:
             """
         )
 
+
         st.markdown("## Priority Actions")
 
         st.markdown(
@@ -1378,6 +1399,7 @@ if run:
             5. Monitor performance against KPIs.
             """
         )
+
 
         st.markdown("## KPIs / Success Metrics")
 
@@ -1392,6 +1414,8 @@ if run:
             """
         )
 
+
+        # Close report-card div
         st.markdown(
             "</div>",
             unsafe_allow_html=True,
