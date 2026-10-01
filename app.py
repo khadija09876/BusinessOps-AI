@@ -2,8 +2,6 @@ import time
 import io
 import streamlit as st
 from groq import Groq
-import plotly.express as px
-import pandas as pd
 
 # CrewAI Flow
 from crewai.flow import Flow, start, listen
@@ -16,7 +14,7 @@ from docx import Document
 
 
 # ============================================================
-# BUSINESSOPS AI - ENTERPRISE DASHBOARD EDITION
+# BUSINESSOPS AI
 # Autonomous Business Process Intelligence Platform
 # ============================================================
 
@@ -29,11 +27,10 @@ st.set_page_config(
 
 
 # ============================================================
-# SESSION STATE INITIALIZATION FOR HISTORY
+# CONFIG
 # ============================================================
 
-if "report_history" not in st.session_state:
-    st.session_state.report_history = []
+MODEL = "openai/gpt-oss-20b"
 
 
 # ============================================================
@@ -282,10 +279,7 @@ class BusinessOpsFlow(Flow):
         return {
             "request": self.state.get("request", "").strip(),
             "time_period": self.state.get("time_period", "Immediate"),
-            "priority": self.state.get("priority", "Medium"),
-            "model": self.state.get("model", "openai/gpt-oss-20b"),
-            "temperature": self.state.get("temperature", 0.1),
-            "max_tokens": self.state.get("max_tokens", 600)
+            "priority": self.state.get("priority", "Medium")
         }
 
     @listen(intake)
@@ -390,7 +384,7 @@ Requirements:
 
         try:
             response = client.chat.completions.create(
-                model=data["model"],
+                model=MODEL,
                 messages=[
                     {
                         "role": "system",
@@ -401,8 +395,8 @@ Requirements:
                         "content": prompt,
                     },
                 ],
-                temperature=data["temperature"],
-                max_completion_tokens=data["max_tokens"],
+                temperature=0.1,
+                max_completion_tokens=600,
                 reasoning_effort="low",
             )
 
@@ -417,10 +411,10 @@ Requirements:
                 time.sleep(3)
                 try:
                     retry = client.chat.completions.create(
-                        model=data["model"],
+                        model=MODEL,
                         messages=[{"role": "user", "content": prompt}],
-                        temperature=data["temperature"],
-                        max_completion_tokens=data["max_tokens"],
+                        temperature=0.1,
+                        max_completion_tokens=600,
                         reasoning_effort="low",
                     )
                     retry_result = retry.choices[0].message.content
@@ -433,40 +427,21 @@ Requirements:
 
 
 # ============================================================
-# SIDEBAR: ADVANCED CONTROLS & PROJECT HISTORY
+# SIDEBAR
 # ============================================================
 
 with st.sidebar:
     st.markdown("## ⚡ BusinessOps AI")
     st.markdown("<p style='font-size:12px; color:#969aa3;'>Autonomous Business Process Intelligence Platform</p>", unsafe_allow_html=True)
     st.divider()
-    
-    st.markdown("### ⚙️ AI Engine Parameters")
-    selected_model = st.selectbox(
-        "🧠 LLM Model",
-        ["openai/gpt-oss-20b", "llama-3.3-70b-versatile", "openai/gpt-oss-120b"]
-    )
-    temperature = st.slider("🌡️ Temperature", 0.0, 1.0, 0.1, 0.05)
-    max_tokens = st.slider("📏 Max Completion Tokens", 200, 2000, 600, 50)
-    
-    st.divider()
-    st.markdown("### 📂 Project History")
-    if st.session_state.report_history:
-        history_titles = [item["title"] for item in st.session_state.report_history]
-        selected_history = st.selectbox("Select past report", ["-- Current Session --"] + history_titles)
-        if selected_history != "-- Current Session --":
-            matched_item = next((item for item in st.session_state.report_history if item["title"] == selected_history), None)
-            if matched_item:
-                st.info(f"Loaded: {matched_item['title']} ({matched_item['time']})")
-    else:
-        st.caption("No past reports saved in current session yet.")
-
-    st.divider()
     st.markdown("### Technology")
     st.write("🐍 Python 3.12")
-    st.write("🎨 Streamlit & Plotly")
+    st.write("🎨 Streamlit")
     st.write("🤖 CrewAI Flow")
     st.write("⚡ Groq API")
+    st.write("🧠 GPT-OSS 20B")
+    st.divider()
+    st.caption("Free-tier friendly architecture")
 
 
 # ============================================================
@@ -478,7 +453,7 @@ st.markdown(
     <div class="hero">
         <span class="badge">AUTONOMOUS BUSINESS INTELLIGENCE</span>
         <h1>BusinessOps AI</h1>
-        <p>Transform complex business requests into structured operational plans, interactive analytics charts, risk controls, and priority actions using an advanced agentic AI workflow.</p>
+        <p>Transform complex business requests into structured operational plans, risk controls, priority actions, and measurable outcomes using an agentic AI workflow.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -528,15 +503,15 @@ with m1:
 with m2:
     st.metric(label="LLM CALLS / RUN", value="01")
 with m3:
-    st.metric(label="MODEL", value=selected_model.split("/")[-1].upper())
+    st.metric(label="MODEL", value="20B")
 with m4:
-    st.metric(label="DEPLOYMENT", value="ENTERPRISE")
+    st.metric(label="DEPLOYMENT", value="CLOUD")
 
 st.write("")
 
 
 # ============================================================
-# BUSINESS REQUEST INPUT & CONFIGURATION
+# BUSINESS REQUEST INPUT & ADVANCED CONTROLS
 # ============================================================
 
 st.markdown("### Business Request & Configuration")
@@ -583,42 +558,29 @@ request = st.text_area(
 
 
 # ============================================================
-# EXECUTION BUTTON & INTERACTIVE INTELLIGENCE DASHBOARD
+# EXECUTION BUTTON & ENHANCED SEPARATE PORTIONS (WITH TABS)
 # ============================================================
 
 if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True):
     if not request.strip():
         st.warning("Please enter a business request first.")
     else:
-        with st.spinner("BusinessOps AI agents are running through the workflow..."):
+        with st.spinner("BusinessOps AI is analyzing the request and generating the report..."):
             flow = BusinessOpsFlow()
             flow.state["request"] = request
             flow.state["time_period"] = time_period
             flow.state["priority"] = priority
-            flow.state["model"] = selected_model
-            flow.state["temperature"] = temperature
-            flow.state["max_tokens"] = max_tokens
             result = flow.kickoff()
 
         st.success("Business workflow completed successfully.")
         
-        # Save to session history
-        history_entry = {
-            "title": request[:45] + "...",
-            "time": time.strftime("%H:%M:%S"),
-            "result": result
-        }
-        if history_entry not in st.session_state.report_history:
-            st.session_state.report_history.insert(0, history_entry)
-
         st.write("")
         st.markdown("---")
         st.markdown("### 🎛️ Interactive Intelligence Dashboard")
 
-        # Tab Navigation
-        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        # Tab Navigation to keep view clean and organized
+        tab1, tab2, tab3, tab4 = st.tabs([
             "📊 Operational Overview", 
-            "📈 Analytics & Charts", 
             "🗺 Milestone Roadmap", 
             "🛡️ Risk Operations", 
             "📝 Full Intelligence Report"
@@ -636,30 +598,6 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
                 st.metric(label="EXECUTION READINESS", value="98.5%")
 
         with tab2:
-            st.markdown("#### 📊 Operational Readiness & Stage Velocity")
-            chart_data = pd.DataFrame({
-                "Workflow Stage": ["Business Analysis", "Operations Planning", "Risk Management", "Action Planning", "KPI Design", "QA Audit"],
-                "Readiness Score (%)": [96, 92, 89, 94, 98, 95],
-                "Execution Priority": [2, 3, 1, 3, 2, 1]
-            })
-            
-            fig = px.bar(
-                chart_data, 
-                x="Workflow Stage", 
-                y="Readiness Score (%)",
-                color="Execution Priority",
-                color_continuousScale="Reds",
-                text="Readiness Score (%)"
-            )
-            fig.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font_color="#d7d7d4",
-                margin=dict(t=20, b=20, l=20, r=20)
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-        with tab3:
             r_cols = st.columns(3)
             with r_cols[0]:
                 st.info("**Phase 1: Setup & Intake**\n\n• Align stakeholders\n• Confirm scope & constraints\n• Immediate resource mapping")
@@ -668,7 +606,7 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
             with r_cols[2]:
                 st.success("**Phase 3: Optimization & QA**\n\n• Evaluate performance metrics\n• Continuous quality audits\n• Final sign-off & handoff")
 
-        with tab4:
+        with tab3:
             ro1, ro2, ro3 = st.columns(3)
             with ro1:
                 st.error("**Operational Bottlenecks**\n\n• Resource allocation limits\n• Cross-department delays\n• Workflow friction points")
@@ -677,7 +615,7 @@ if st.button("⚡ RUN BUSINESSOPS AI", type="primary", use_container_width=True)
             with ro3:
                 st.success("**Continuity Assurance**\n\n• Backup protocol channels\n• Regular status checkpoints\n• Stakeholder alignment validation")
 
-        with tab5:
+        with tab4:
             st.markdown(
                 f"""
                 <div class="report">
@@ -725,7 +663,7 @@ st.divider()
 st.markdown(
     """
     <div style="text-align:center; color:#667386; font-size:12px;">
-        BusinessOps AI • Autonomous Business Process Intelligence • CrewAI + Groq + Plotly • Enterprise Edition
+        BusinessOps AI • Autonomous Business Process Intelligence • CrewAI + Groq • Free-tier deployment architecture
     </div>
     """,
     unsafe_allow_html=True,
