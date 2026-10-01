@@ -1,3 +1,31 @@
+import time
+import streamlit as st
+from groq import Groq
+
+# CrewAI Flow
+from crewai.flow import Flow, start, listen
+
+
+# ============================================================
+# BUSINESSOPS AI
+# Autonomous Business Process Intelligence Platform
+# ============================================================
+
+st.set_page_config(
+    page_title="BusinessOps AI",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+
+# ============================================================
+# CONFIG
+# ============================================================
+
+MODEL = "openai/gpt-oss-20b"
+
+
 # ============================================================
 # PREMIUM CHARCOAL + DEEP MAROON THEME
 # ============================================================
@@ -5,10 +33,6 @@
 st.markdown(
     """
     <style>
-
-    /* ======================================================
-       GLOBAL APPLICATION
-       ====================================================== */
 
     .stApp {
         background:
@@ -45,18 +69,12 @@ st.markdown(
         visibility: hidden;
     }
 
-    header {
-        background: transparent !important;
-    }
-
+    header,
     [data-testid="stHeader"] {
         background: transparent !important;
     }
 
-
-    /* ======================================================
-       SIDEBAR
-       ====================================================== */
+    /* SIDEBAR */
 
     section[data-testid="stSidebar"] {
         background:
@@ -84,10 +102,7 @@ st.markdown(
         letter-spacing: -0.4px;
     }
 
-
-    /* ======================================================
-       TYPOGRAPHY
-       ====================================================== */
+    /* TYPOGRAPHY */
 
     h1 {
         color: #f5f4f1 !important;
@@ -125,11 +140,6 @@ st.markdown(
         color: #858992;
     }
 
-
-    /* ======================================================
-       CAPTIONS / LABELS
-       ====================================================== */
-
     [data-testid="stCaptionContainer"] {
         color: #858a94 !important;
     }
@@ -140,10 +150,7 @@ st.markdown(
         font-weight: 650 !important;
     }
 
-
-    /* ======================================================
-       CARDS / CONTAINERS
-       ====================================================== */
+    /* CARDS */
 
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background:
@@ -154,17 +161,13 @@ st.markdown(
             ) !important;
 
         border: 1px solid rgba(255, 255, 255, 0.065) !important;
-
         border-radius: 16px !important;
 
         box-shadow:
             0 14px 38px rgba(0, 0, 0, 0.20);
     }
 
-
-    /* ======================================================
-       INPUTS
-       ====================================================== */
+    /* INPUTS */
 
     textarea,
     input {
@@ -191,10 +194,7 @@ st.markdown(
             0 0 20px rgba(122, 34, 55, 0.08) !important;
     }
 
-
-    /* ======================================================
-       SELECTBOX
-       ====================================================== */
+    /* SELECTBOX */
 
     div[data-baseweb="select"] > div {
         background: #0c0e12 !important;
@@ -208,14 +208,10 @@ st.markdown(
         color: #ddddda !important;
     }
 
-
-    /* ======================================================
-       BUTTONS
-       ====================================================== */
+    /* BUTTONS */
 
     div.stButton > button {
         min-height: 45px;
-
         border-radius: 10px;
 
         border: 1px solid rgba(177, 76, 101, 0.28);
@@ -229,18 +225,14 @@ st.markdown(
             );
 
         color: #ffffff;
-
         font-size: 12px;
-
         font-weight: 800;
-
         letter-spacing: 0.1px;
 
         box-shadow:
             0 10px 28px rgba(0, 0, 0, 0.22);
 
-        transition:
-            all 0.2s ease;
+        transition: all 0.2s ease;
     }
 
     div.stButton > button:hover {
@@ -260,14 +252,10 @@ st.markdown(
         transform: translateY(-1px);
     }
 
-
-    /* ======================================================
-       DOWNLOAD BUTTONS
-       ====================================================== */
+    /* DOWNLOAD BUTTONS */
 
     div[data-testid="stDownloadButton"] button {
         min-height: 43px;
-
         border-radius: 10px;
 
         background:
@@ -278,29 +266,18 @@ st.markdown(
             );
 
         border: 1px solid #292c34;
-
         color: #d9dadc;
-
         font-size: 11px;
-
         font-weight: 750;
-
-        transition:
-            all 0.2s ease;
     }
 
     div[data-testid="stDownloadButton"] button:hover {
         border-color: #743047;
-
         color: #eeeeee;
-
         background: #13151a;
     }
 
-
-    /* ======================================================
-       METRICS
-       ====================================================== */
+    /* METRICS */
 
     div[data-testid="stMetric"] {
         background:
@@ -311,9 +288,7 @@ st.markdown(
             );
 
         border: 1px solid rgba(255, 255, 255, 0.055);
-
         border-radius: 12px;
-
         padding: 14px 15px;
 
         box-shadow:
@@ -322,32 +297,22 @@ st.markdown(
 
     div[data-testid="stMetricLabel"] {
         font-size: 9px !important;
-
         color: #777d87 !important;
-
         font-weight: 750 !important;
-
         letter-spacing: 0.6px;
     }
 
     div[data-testid="stMetricValue"] {
         font-size: 20px !important;
-
         color: #e5e4e1 !important;
-
         font-weight: 800 !important;
     }
 
-
-    /* ======================================================
-       TABS
-       ====================================================== */
+    /* TABS */
 
     button[data-baseweb="tab"] {
         color: #777d87 !important;
-
         font-size: 11px !important;
-
         font-weight: 750 !important;
     }
 
@@ -363,10 +328,7 @@ st.markdown(
         background: #8c334d !important;
     }
 
-
-    /* ======================================================
-       EXPANDER
-       ====================================================== */
+    /* EXPANDER */
 
     div[data-testid="stExpander"] {
         background:
@@ -377,7 +339,6 @@ st.markdown(
             );
 
         border: 1px solid #282b32;
-
         border-radius: 11px;
     }
 
@@ -385,28 +346,19 @@ st.markdown(
         color: #d7d7d4 !important;
     }
 
-
-    /* ======================================================
-       ALERTS
-       ====================================================== */
+    /* ALERTS */
 
     div[data-testid="stAlert"] {
         border-radius: 10px !important;
     }
 
-
-    /* ======================================================
-       DIVIDERS
-       ====================================================== */
+    /* DIVIDERS */
 
     hr {
         border-color: rgba(255, 255, 255, 0.055) !important;
     }
 
-
-    /* ======================================================
-       SCROLLBAR
-       ====================================================== */
+    /* SCROLLBAR */
 
     ::-webkit-scrollbar {
         width: 7px;
@@ -426,10 +378,7 @@ st.markdown(
         background: #663044;
     }
 
-
-    /* ======================================================
-       MOBILE
-       ====================================================== */
+    /* MOBILE */
 
     @media (max-width: 900px) {
 
@@ -456,3 +405,20 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+
+# ============================================================
+# CREWAI FLOW
+# ============================================================
+
+class BusinessOpsFlow(Flow):
+
+    @start()
+    def intake(self):
+        return {
+            "request": self.state.get("request", "").strip()
+        }
+
+    # ========================================================
+    # BAQI AAPKA EXISTING CREWAI CODE YAHAN SE SAME RAHEGA
+    # ========================================================
